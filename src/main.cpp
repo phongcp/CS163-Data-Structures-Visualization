@@ -1,4 +1,6 @@
 #include <raylib.h>
+#include "../include/var.h"
+#include "../include/ui.h"
 using namespace std;
 
 int main() {
@@ -7,16 +9,19 @@ int main() {
 
     Menu menu;
     menu.init();
+    // Interface ITF;
+    // ITF.init();
 
     while (!WindowShouldClose()) {
         BeginDrawing();
 
         ClearBackground(RAYWHITE); 
-        
+        draw_bg();
+        menu.draw();
+
         EndDrawing();
     }
     
     CloseWindow();
     return 0;
 }
-// g++ -Iinclude -ID:/raylib/include -o DSVisualization src/main.cpp include/var.h src/var.cpp include/ui.h src/ui.cpp -LD:/raylib/lib -lraylib -lopengl32 -lgdi32 -lwinmm
