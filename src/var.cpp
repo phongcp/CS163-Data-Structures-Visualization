@@ -1,11 +1,13 @@
 #include <raylib.h>
 #include "../include/var.h"
 
-const int screenWidth = 1280;
-const int screenHeight = 720;
+const int screenWidth = 1440;
+const int screenHeight = 810;
 
 double deltaTime = 0.5f;  // Thời gian giữa các frame
 Font customFont = GetFontDefault();
+
+CurST current_state;
 
 // Kiểm tra vị trí chuột có nằm trong button không
 bool button::CheckMouse(Vector2 A,int k){
@@ -29,9 +31,4 @@ void button::DrawBasic(float g){
     float k = 1;
     if (col && kind_mouse != 5) k = g;
     DrawTexture(image,Postion.x,Postion.y,Fade(color,k));
-}
-
-void draw_bg(){
-    DrawRectangle(0,0,screenWidth,screenHeight, Color {150,140,228,255});
-    // DrawTexture(Logo,0,0,RAYWHITE);
 }

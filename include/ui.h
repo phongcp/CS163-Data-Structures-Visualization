@@ -6,6 +6,8 @@
 #include "../include/var.h"
 using namespace std;
 
+void draw_bg();
+
 class Menu {
 public:
     void init();
@@ -16,11 +18,11 @@ private:
     vector <button> Button;
 };
 
-class Interface {
+class Tool {
 private:
     vector <button> Button;     // Danh sách các nút điều khiển
-    button Speed, NodeSpeed;          // Nút điều chỉnh tốc độ và tốc độ node
-    bool checkNodeSpeed;                    // Trạng thái kiểm tra tốc độ node
+    button SpeedBar, SpeedNode;          // Nút điều chỉnh tốc độ và tốc độ node
+    bool checkSpeedNode;                    // Trạng thái kiểm tra tốc độ node
     int gtt;                        // Giá trị thời gian
 
 public:

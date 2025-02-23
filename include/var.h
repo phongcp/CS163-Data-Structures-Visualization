@@ -10,15 +10,17 @@ extern const int screenHeight;
 extern Font customFont;
 extern double deltaTime;
 
-enum Pos{
+enum CurST{
     MENU,       // Menu chính
+    SINGLYLINKLIST,     // Singly Link List
     HEAPTREE,   // Heap
     AVLTREE,    // Cây AVL
     HASHTABLE,  // Bảng băm
     TRIE,       // Cây Trie
-    GRAPH,      // Đồ thị
-    TTFTREE     // Cây 2-3-4
+    GRAPH      // Đồ thị
 };
+
+extern CurST current_state;
 
 // Enum định nghĩa các loại thao tác
 enum Kind{
