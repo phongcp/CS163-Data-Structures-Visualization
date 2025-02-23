@@ -1,23 +1,22 @@
 #include <raylib.h>
 #include "../include/var.h"
 #include "../include/ui.h"
+#include "../include/manager.h"
 using namespace std;
 
 int main() {
     InitWindow(screenWidth, screenHeight, "Data Structure Visualization");
     SetTargetFPS(60);
 
-    Menu menu;
-    menu.init();
-    // Interface ITF;
-    // ITF.init();
+    init();
+    current_state = MENU;
 
     while (!WindowShouldClose()) {
         BeginDrawing();
 
         ClearBackground(RAYWHITE); 
-        draw_bg();
-        menu.draw();
+        event();
+        draw();
 
         EndDrawing();
     }
