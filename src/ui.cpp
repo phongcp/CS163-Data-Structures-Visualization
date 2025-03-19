@@ -13,9 +13,9 @@ void draw_bg(){
 void Menu::init() {
     Button.resize(6);
 
-    Button[0] = {{117,243},{1,1},(Texture2D)LoadTexture("../assets/menu_bottom/heaptree.png"),RAYWHITE,1};
+    Button[0] = {{117,243},{1,1},(Texture2D)LoadTexture("../assets/menu_bottom/SinglyLinkList.png"),RAYWHITE,1};
     Button[1] = {{575,243},{1,1},(Texture2D)LoadTexture("../assets/menu_bottom/avltree.png"),RAYWHITE,1};
-    Button[2] = {{1045,243},{1,1},(Texture2D)LoadTexture("../assets/menu_bottom/234tree.png"),RAYWHITE,1};
+    Button[2] = {{1045,243},{1,1},(Texture2D)LoadTexture("../assets/menu_bottom/heap.png"),RAYWHITE,1};
     Button[3] = {{117,523},{1,1},(Texture2D)LoadTexture("../assets/menu_bottom/hashtable.png"),RAYWHITE,1};
     Button[4] = {{575,523},{1,1},(Texture2D)LoadTexture("../assets/menu_bottom/trie.png"),RAYWHITE,1};
     Button[5] = {{1054,523},{1,1},(Texture2D)LoadTexture("../assets/menu_bottom/graph.png"),RAYWHITE,1};
@@ -38,7 +38,7 @@ void Menu::draw(){
 int Menu::UpdatePressOn(){
     bool Press = 0;
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) Press = 1;  // Kiểm tra click chuột trái
-    if (Press) std::cout << Press;
+    if (Press) cout << Press;
     
     Vector2 x = GetMousePosition();  // Lấy vị trí chuột
     int d = 0;
@@ -124,7 +124,10 @@ void Tool::draw(){
     SpeedNode.DrawBasic(1);
 }
 
-int Tool::UpdatePressOn(bool Press){
+int Tool::UpdatePressOn(){
+    bool Press = 0;
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) Press = 1;
+
     int d = 0;
     Vector2 Mouse = GetMousePosition();  // Lấy vị trí chuột
 
