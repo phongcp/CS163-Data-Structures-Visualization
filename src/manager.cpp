@@ -2,7 +2,7 @@
 #include <raylib.h>
 #include "../include/var.h"
 #include "../include/ui.h"
-#include "../include/SinglyLinkList.h"
+#include "../include/SinglyLinkedList.h"
 using namespace std;
 
 Menu menu;

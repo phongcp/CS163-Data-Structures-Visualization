@@ -5,7 +5,6 @@
 using namespace std;
 
 void draw_bg(){
-    Texture2D Logo = LoadTexture("../assets/bg/name.png");
     DrawRectangle(0,0,screenWidth,screenHeight, Color {80, 80, 80, 255});
     DrawTexture(Logo,0,0,RAYWHITE);
 }
@@ -110,7 +109,7 @@ void Tool::draw(){
     }
 
     // Chuẩn bị text cho các loại cấu trúc dữ liệu
-    const char * A = "Singly Link List";
+    const char * A = "Singly Linked List";
     int fontSize = 40;
 
     // Vẽ tiêu đề tương ứng với cấu trúc dữ liệu đang được chọn
@@ -171,6 +170,6 @@ int Tool::UpdatePressOn(){
         float x = Nowpos / (total /20.0);
         deltaTime = 0.25/(1.0 + 1.0*x);
     }
-
+    
     return -1;  // Không có nút nào được nhấn
 }

@@ -8,7 +8,11 @@ extern const int screenWidth;
 extern const int screenHeight;
 
 extern Font customFont;
+extern Texture2D Logo;
 extern double deltaTime;
+
+extern float radius;
+extern float fontSize;
 
 enum CurST{
     MENU,       // Menu chính
@@ -60,6 +64,8 @@ struct button {
     bool CheckPress(Vector2 A,int k,bool _press); // Kiểm tra nhấn chuột
 };
 
+void init_bg();
 void draw_bg();
+void DrawConnection(Vector2 p1, Vector2 p2, bool direct=0, Color color=BLACK, float thickness=5, float r1=radius, float r2=radius);
 
 #endif 
