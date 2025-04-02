@@ -64,8 +64,11 @@ struct button {
     bool CheckPress(Vector2 A,int k,bool _press); // Kiểm tra nhấn chuột
 };
 
+Vector2 GetCircleEdgePoint(Vector2 center1, Vector2 center2, float radius);
+
 void init_bg();
 void draw_bg();
 void DrawConnection(Vector2 p1, Vector2 p2, bool direct=0, Color color=BLACK, float thickness=5, float r1=radius, float r2=radius);
+void WaitTime(float seconds);
 
 #endif 

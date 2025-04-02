@@ -4,7 +4,7 @@
 const int screenWidth = 1440;
 const int screenHeight = 810;
 
-double deltaTime = 0.5f;  // Thời gian giữa các frame
+double deltaTime = 0.8f;  // Thời gian giữa các frame
 Font customFont;
 Texture2D Logo;
 
@@ -18,6 +18,14 @@ void init_bg() {
     
     customFont = LoadFontEx("../assets/fonts/Roboto/Roboto-Bold.ttf",100,nullptr,0);
     SetTextureFilter(customFont.texture, TEXTURE_FILTER_POINT);
+}
+
+void WaitTime(float seconds) {
+    float duration = seconds;
+    float elapsedTime = 0.0f;
+    while (elapsedTime < duration) {
+        elapsedTime += GetFrameTime(); // Increment elapsed time by the frame time
+    }
 }
 
 // Kiểm tra vị trí chuột có nằm trong button không
