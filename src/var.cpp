@@ -1,3 +1,4 @@
+#include <bits/stdc++.h>
 #include <raylib.h>
 #include "../include/var.h"
 
@@ -20,12 +21,10 @@ void init_bg() {
     SetTextureFilter(customFont.texture, TEXTURE_FILTER_POINT);
 }
 
-void WaitTime(float seconds) {
-    float duration = seconds;
-    float elapsedTime = 0.0f;
-    while (elapsedTime < duration) {
-        elapsedTime += GetFrameTime(); // Increment elapsed time by the frame time
-    }
+long long Rand(long long l, long long r){
+    long long res = 0;
+    for (int i = 0; i < 4; i ++) res = (res << 15) ^ rand();
+    return l + res % (r - l + 1);
 }
 
 // Kiểm tra vị trí chuột có nằm trong button không

@@ -8,7 +8,7 @@ int main() {
     InitWindow(screenWidth, screenHeight, "Data Structure Visualization");
     SetTargetFPS(60);
 
-    init();
+    init(); init_bg();
     current_state = MENU;
 
     while (!WindowShouldClose()) {

@@ -68,11 +68,11 @@ void Tool::init(){
         RAYWHITE, 1);     
 
     // Khởi tạo thanh điều chỉnh tốc độ
-    SpeedBar = button({92, 762},{237,22},              // Thanh tốc độ
+    SpeedBar = button({50, 762},{237,22},              // Thanh tốc độ
         LoadTexture("../assets/in_app/speed.png"),
         RAYWHITE, 1);     
 
-    SpeedNode = button({210, 762},{42,22},           // Nút trượt trên thanh tốc độ
+    SpeedNode = button({168, 762},{42,22},           // Nút trượt trên thanh tốc độ
         LoadTexture("../assets/in_app/node_speed.png"),
         RAYWHITE, 1);  
 
@@ -110,6 +110,7 @@ void Tool::draw(){
 
     // Chuẩn bị text cho các loại cấu trúc dữ liệu
     const char * A = "Singly Linked List";
+    const char * F = "Minimum Spanning Tree";    
     int fontSize = 40;
 
     // Vẽ tiêu đề tương ứng với cấu trúc dữ liệu đang được chọn
@@ -117,6 +118,31 @@ void Tool::draw(){
         Vector2 textSize = MeasureTextEx(customFont, A, fontSize, 1);
         Vector2 Postion = {screenWidth/2.0f - textSize.x/2.0f,14};
         DrawTextEx(customFont,A,Postion,fontSize,1.0f,WHITE);
+    }
+    else if (current_state == MSTree) {
+        Vector2 textSize = MeasureTextEx(customFont, F, fontSize, 1);
+        Vector2 Postion = {screenWidth/2.0f - textSize.x/2.0f,14};
+        DrawTextEx(customFont,F,Postion,fontSize,1.0f,WHITE);
+    }
+    else if (current_state == AVLTREE) {
+        Vector2 textSize = MeasureTextEx(customFont, "AVL Tree", fontSize, 1);
+        Vector2 Postion = {screenWidth/2.0f - textSize.x/2.0f,14};
+        DrawTextEx(customFont,"AVL Tree",Postion,fontSize,1.0f,WHITE);
+    }
+    else if (current_state == HASHTABLE) {
+        Vector2 textSize = MeasureTextEx(customFont, "Hash Table", fontSize, 1);
+        Vector2 Postion = {screenWidth/2.0f - textSize.x/2.0f,14};
+        DrawTextEx(customFont,"Hash Table",Postion,fontSize,1.0f,WHITE);
+    }
+    else if (current_state == TRIE) {
+        Vector2 textSize = MeasureTextEx(customFont, "Trie", fontSize, 1);
+        Vector2 Postion = {screenWidth/2.0f - textSize.x/2.0f,14};
+        DrawTextEx(customFont,"Trie",Postion,fontSize,1.0f,WHITE);
+    }
+    else if (current_state == SHORTESTPATH) {
+        Vector2 textSize = MeasureTextEx(customFont, "Shortest Path", fontSize, 1);
+        Vector2 Postion = {screenWidth/2.0f - textSize.x/2.0f,14};
+        DrawTextEx(customFont,"Shortest Path",Postion,fontSize,1.0f,WHITE);
     }
     
     SpeedBar.DrawBasic(1);
@@ -163,12 +189,12 @@ int Tool::UpdatePressOn(){
     float Nowpos = SpeedNode.Postion.x + SpeedNode.Size.x - SpeedBar.Postion.x;
     if (Nowpos <= total) {
         float x = Nowpos / (total / 10.0);
-        deltaTime = 0.25/(0.1*x);
+        deltaTime = 0.5/(0.1*x);
     }
     else {
         Nowpos -= total;
         float x = Nowpos / (total /20.0);
-        deltaTime = 0.25/(1.0 + 1.0*x);
+        deltaTime = 0.5/(1.0 + 1.0*x);
     }
     
     return -1;  // Không có nút nào được nhấn

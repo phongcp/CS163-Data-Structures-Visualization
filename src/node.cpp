@@ -1,7 +1,7 @@
 #include "..\include\node.h"
 
-Node::Node(std::string value, Vector2 pos, Color col, float r, Font f, float fSize)
-    : data(value), position(pos), color(col), radius(r), font(f), fontSize(fSize) {}
+Node::Node(std::string value, Vector2 pos, Color col, float r, Font f, float fSize, Vector2 vec)
+    : data(value), position(pos), color(col), radius(r), font(f), fontSize(fSize), velocity(vec) {}
 
 void Node::draw(int rad, int ft) {
     // DrawCircleV(position, radius, color);
