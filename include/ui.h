@@ -28,7 +28,7 @@ private:
 public:
     void init();                           // Khởi tạo giao diện
     void draw();                           // Vẽ giao diện
-    int UpdatePressOn(bool Press);         // Xử lý sự kiện nhấn nút
+    int UpdatePressOn();         // Xử lý sự kiện nhấn nút
 };
 
 #endif

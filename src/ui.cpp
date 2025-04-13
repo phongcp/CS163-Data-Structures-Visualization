@@ -5,7 +5,6 @@
 using namespace std;
 
 void draw_bg(){
-    Texture2D Logo = LoadTexture("../assets/bg/name.png");
     DrawRectangle(0,0,screenWidth,screenHeight, Color {80, 80, 80, 255});
     DrawTexture(Logo,0,0,RAYWHITE);
 }
@@ -13,9 +12,9 @@ void draw_bg(){
 void Menu::init() {
     Button.resize(6);
 
-    Button[0] = {{117,243},{1,1},(Texture2D)LoadTexture("../assets/menu_bottom/heaptree.png"),RAYWHITE,1};
+    Button[0] = {{117,243},{1,1},(Texture2D)LoadTexture("../assets/menu_bottom/SinglyLinkList.png"),RAYWHITE,1};
     Button[1] = {{575,243},{1,1},(Texture2D)LoadTexture("../assets/menu_bottom/avltree.png"),RAYWHITE,1};
-    Button[2] = {{1045,243},{1,1},(Texture2D)LoadTexture("../assets/menu_bottom/234tree.png"),RAYWHITE,1};
+    Button[2] = {{1045,243},{1,1},(Texture2D)LoadTexture("../assets/menu_bottom/heap.png"),RAYWHITE,1};
     Button[3] = {{117,523},{1,1},(Texture2D)LoadTexture("../assets/menu_bottom/hashtable.png"),RAYWHITE,1};
     Button[4] = {{575,523},{1,1},(Texture2D)LoadTexture("../assets/menu_bottom/trie.png"),RAYWHITE,1};
     Button[5] = {{1054,523},{1,1},(Texture2D)LoadTexture("../assets/menu_bottom/graph.png"),RAYWHITE,1};
@@ -38,7 +37,7 @@ void Menu::draw(){
 int Menu::UpdatePressOn(){
     bool Press = 0;
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) Press = 1;  // Kiểm tra click chuột trái
-    if (Press) std::cout << Press;
+    if (Press) cout << Press;
     
     Vector2 x = GetMousePosition();  // Lấy vị trí chuột
     int d = 0;
@@ -69,11 +68,11 @@ void Tool::init(){
         RAYWHITE, 1);     
 
     // Khởi tạo thanh điều chỉnh tốc độ
-    SpeedBar = button({92, 762},{237,22},              // Thanh tốc độ
+    SpeedBar = button({50, 762},{237,22},              // Thanh tốc độ
         LoadTexture("../assets/in_app/speed.png"),
         RAYWHITE, 1);     
 
-    SpeedNode = button({210, 762},{42,22},           // Nút trượt trên thanh tốc độ
+    SpeedNode = button({168, 762},{42,22},           // Nút trượt trên thanh tốc độ
         LoadTexture("../assets/in_app/node_speed.png"),
         RAYWHITE, 1);  
 
@@ -110,7 +109,8 @@ void Tool::draw(){
     }
 
     // Chuẩn bị text cho các loại cấu trúc dữ liệu
-    const char * A = "Singly Link List";
+    const char * A = "Singly Linked List";
+    const char * F = "Minimum Spanning Tree";    
     int fontSize = 40;
 
     // Vẽ tiêu đề tương ứng với cấu trúc dữ liệu đang được chọn
@@ -119,12 +119,40 @@ void Tool::draw(){
         Vector2 Postion = {screenWidth/2.0f - textSize.x/2.0f,14};
         DrawTextEx(customFont,A,Postion,fontSize,1.0f,WHITE);
     }
+    else if (current_state == MSTree) {
+        Vector2 textSize = MeasureTextEx(customFont, F, fontSize, 1);
+        Vector2 Postion = {screenWidth/2.0f - textSize.x/2.0f,14};
+        DrawTextEx(customFont,F,Postion,fontSize,1.0f,WHITE);
+    }
+    else if (current_state == AVLTREE) {
+        Vector2 textSize = MeasureTextEx(customFont, "AVL Tree", fontSize, 1);
+        Vector2 Postion = {screenWidth/2.0f - textSize.x/2.0f,14};
+        DrawTextEx(customFont,"AVL Tree",Postion,fontSize,1.0f,WHITE);
+    }
+    else if (current_state == HASHTABLE) {
+        Vector2 textSize = MeasureTextEx(customFont, "Hash Table", fontSize, 1);
+        Vector2 Postion = {screenWidth/2.0f - textSize.x/2.0f,14};
+        DrawTextEx(customFont,"Hash Table",Postion,fontSize,1.0f,WHITE);
+    }
+    else if (current_state == TRIE) {
+        Vector2 textSize = MeasureTextEx(customFont, "Trie", fontSize, 1);
+        Vector2 Postion = {screenWidth/2.0f - textSize.x/2.0f,14};
+        DrawTextEx(customFont,"Trie",Postion,fontSize,1.0f,WHITE);
+    }
+    else if (current_state == SHORTESTPATH) {
+        Vector2 textSize = MeasureTextEx(customFont, "Shortest Path", fontSize, 1);
+        Vector2 Postion = {screenWidth/2.0f - textSize.x/2.0f,14};
+        DrawTextEx(customFont,"Shortest Path",Postion,fontSize,1.0f,WHITE);
+    }
     
     SpeedBar.DrawBasic(1);
     SpeedNode.DrawBasic(1);
 }
 
-int Tool::UpdatePressOn(bool Press){
+int Tool::UpdatePressOn(){
+    bool Press = 0;
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) Press = 1;
+
     int d = 0;
     Vector2 Mouse = GetMousePosition();  // Lấy vị trí chuột
 
@@ -161,13 +189,13 @@ int Tool::UpdatePressOn(bool Press){
     float Nowpos = SpeedNode.Postion.x + SpeedNode.Size.x - SpeedBar.Postion.x;
     if (Nowpos <= total) {
         float x = Nowpos / (total / 10.0);
-        deltaTime = 0.25/(0.1*x);
+        deltaTime = 0.5/(0.1*x);
     }
     else {
         Nowpos -= total;
         float x = Nowpos / (total /20.0);
-        deltaTime = 0.25/(1.0 + 1.0*x);
+        deltaTime = 0.5/(1.0 + 1.0*x);
     }
-
+    
     return -1;  // Không có nút nào được nhấn
 }

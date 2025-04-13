@@ -8,16 +8,20 @@ extern const int screenWidth;
 extern const int screenHeight;
 
 extern Font customFont;
+extern Texture2D Logo;
 extern double deltaTime;
+
+extern float radius;
+extern float fontSize;
 
 enum CurST{
     MENU,       // Menu chính
     SINGLYLINKLIST,     // Singly Link List
-    HEAPTREE,   // Heap
+    MSTree,   // Heap
     AVLTREE,    // Cây AVL
     HASHTABLE,  // Bảng băm
     TRIE,       // Cây Trie
-    GRAPH      // Đồ thị
+    SHORTESTPATH      // Đồ thị
 };
 
 extern CurST current_state;
@@ -31,6 +35,13 @@ enum Kind{
     Update,     // Cập nhật
     Search,     // Tìm kiếm
     file        // Xử lý file
+};
+
+struct Edge {
+    int nodeA, nodeB, Weight;
+    float restLength;
+    Color color;
+    bool isSelected = false;
 };
 
 struct button {
@@ -60,6 +71,12 @@ struct button {
     bool CheckPress(Vector2 A,int k,bool _press); // Kiểm tra nhấn chuột
 };
 
+long long Rand(long long l, long long r);
+Vector2 GetCircleEdgePoint(Vector2 center1, Vector2 center2, float radius);
+
+void init_bg();
 void draw_bg();
+void DrawConnection(Vector2 p1, Vector2 p2, bool direct=0, Color color=BLACK, float thickness=5, float r1=radius, float r2=radius);
+void WaitTime(float seconds);
 
 #endif 

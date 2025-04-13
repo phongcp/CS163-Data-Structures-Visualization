@@ -19,6 +19,7 @@ link_directories(${RAYLIB_PATH}/lib)
 include_directories(include)
 
 file(GLOB SOURCES "src/*.cpp")
+list(APPEND SOURCES src/tinyfiledialogs.c)
 
 add_executable(ds_visualization ${SOURCES})
 
