@@ -356,9 +356,9 @@ void SinglyLinkedList::goingSt(int nidx) {
         }
         else if (curOp == 4) {
             list = history[idx - 1].nodes;
-            if (history[idx].pos == 0) 
+            if (history[idx - 1].pos == 0) 
                 animateDisconnection(history[idx].nodes[0].position, history[idx - 1].nodes[0].position, ORANGE, 4.0f);
-            else if (history[idx].pos == history[idx].nodes.size()) 
+            else if (history[idx - 1].pos == history[idx - 1].nodes.size()) 
                 animateDisconnection(history[idx - 1].nodes.back().position, history[idx].nodes.back().position, ORANGE, 4.0f);
         }
     }
@@ -402,12 +402,6 @@ void SinglyLinkedList::goingSt(int nidx) {
     else if (idx == history.size() - 1 && isAdding && currentPseudocode != addNodeAtPositionCode) {
         visb = 1;
     }
-
-    cout << '\n' << idx << ' ' << visb << '\n';
-    for (int i = 0; i < list.size(); i++) {
-        cout << list[i].position.x << ' ';
-    }
-
 }
 
 void SinglyLinkedList::running() {
