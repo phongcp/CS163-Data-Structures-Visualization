@@ -22,10 +22,10 @@ private:
     void disappear(Node &node);
     
     Rectangle loadFileButton;
-    Rectangle addPosButton;
-    Rectangle addHeadButton;
-    Rectangle addTailButton;
+    Rectangle addButton;
     Rectangle deleteButton;
+    Rectangle updateButton;
+    Rectangle searchButton;
     Rectangle createRandomButton;
     Rectangle clearButton;
     vector <button> remote;
@@ -104,10 +104,30 @@ private:
         ""
     };
 
+    const char* searchNodeCode[6] = {
+        "if empty or i >= size, do nothing",
+        "Vertex pre=head, for (k=0;k<i-1;k++) pre=pre.next",
+        "return pre",
+        "",
+        "",
+        ""
+    };
+
+    const char* updateNodeCode[6] = {
+        "if empty or i >= size, do nothing",
+        "Vertex pre=head, for (k=0;k<i-1;k++) pre=pre.next",
+        "pre.data = v",
+        "",
+        "",
+        ""
+    };
+
     void drawPseudocode(const char** pseudocode, int lineCount, int highlightedLine);
 
 public:
     void init();
+    void searchNode(int pos);
+    void updateNode(int pos, std::string data);
     void addNodeAtHead(std::string data);
     void addNodeAtTail(std::string data);
     void addNodeAtPosition(int pos, std::string data);
@@ -116,6 +136,7 @@ public:
     void deleteNode(int position);
     void createRandomList(int n);
     void loadFile();
+    void fill();
     void clear();
     void checkPause();
     void goingSt(int nidx);

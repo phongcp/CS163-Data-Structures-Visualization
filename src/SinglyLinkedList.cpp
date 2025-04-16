@@ -9,10 +9,10 @@
 
 void SinglyLinkedList::init() {
     loadFileButton = { 20, 280, 200, 50 };
-    addPosButton = { 20, 340, 200, 50 };
-    addHeadButton = { 20, 400, 200, 50 };
-    addTailButton = { 20, 460, 200, 50 };
-    deleteButton = { 20, 520, 200, 50 };
+    addButton = { 20, 340, 200, 50 };
+    deleteButton = { 20, 400, 200, 50 };
+    updateButton = { 20, 460, 200, 50 };
+    searchButton = { 20, 520, 200, 50 };
     createRandomButton = { 20, 580, 200, 50 };
     clearButton = { 20, 640, 200, 50 };
 
@@ -70,17 +70,17 @@ void SinglyLinkedList::draw() {
     DrawRectangleRec(loadFileButton, LIGHTGRAY);
     DrawTextEx(customFont, "Load File", { loadFileButton.x + 10, loadFileButton.y + 15 }, 20, 2, BLACK);
 
-    DrawRectangleRec(addPosButton, LIGHTGRAY);
-    DrawTextEx(customFont, "Add Node at Point", { addPosButton.x + 10, addPosButton.y + 15 }, 20, 2, BLACK);
-
-    DrawRectangleRec(addHeadButton, LIGHTGRAY);
-    DrawTextEx(customFont, "Add Node at Head", { addHeadButton.x + 10, addHeadButton.y + 15 }, 20, 2, BLACK);
-
-    DrawRectangleRec(addTailButton, LIGHTGRAY);
-    DrawTextEx(customFont, "Add Node at Tail", { addTailButton.x + 10, addTailButton.y + 15 }, 20, 2, BLACK);
+    DrawRectangleRec(addButton, LIGHTGRAY);
+    DrawTextEx(customFont, "Add Node at Point", { addButton.x + 10, addButton.y + 15 }, 20, 2, BLACK);
 
     DrawRectangleRec(deleteButton, LIGHTGRAY);
     DrawTextEx(customFont, "Delete Node", { deleteButton.x + 10, deleteButton.y + 15 }, 20, 2, BLACK);
+
+    DrawRectangleRec(updateButton, LIGHTGRAY);
+    DrawTextEx(customFont, "Update Node", { updateButton.x + 10, updateButton.y + 15 }, 20, 2, BLACK);
+
+    DrawRectangleRec(searchButton, LIGHTGRAY);
+    DrawTextEx(customFont, "Search Node", { searchButton.x + 10, searchButton.y + 15 }, 20, 2, BLACK);
 
     DrawRectangleRec(createRandomButton, LIGHTGRAY);
     DrawTextEx(customFont, "Create Random List", { createRandomButton.x + 10, createRandomButton.y + 15 }, 20, 2, BLACK);
@@ -121,9 +121,9 @@ void SinglyLinkedList::draw() {
 
     if (inputActive) {
         float dy;
-        if (inputType == 1) dy = 400;
-        else if (inputType == 2) dy = 460;
-        else if (inputType == 3) dy = 520;
+        if (inputType == 1) dy = 460;
+        else if (inputType == 2) dy = 520;
+        else if (inputType == 3) dy = 400;
         else if (inputType == 4) dy = 580;
         else if (inputType == 5) dy = 340;
         DrawRectangle(230, dy, 100, 50, LIGHTGRAY);
@@ -620,6 +620,58 @@ void SinglyLinkedList::deleteNode(int position) {
     running();
 }
 
+void SinglyLinkedList::searchNode(int position) {
+    if (position < 0 || position >= list.size()) return;
+
+    if (!list.empty()) list = history.back().nodes;
+    idx = 0, history.clear();
+
+    currentPseudocode = searchNodeCode;
+
+    history.push_back({0, 0, 0, list});
+
+    for (int i = 0; i < position; ++i) {
+        list[i].color = ORANGE;
+        history.push_back({1, 0, 0, list});
+        list[i].color = BLACK;
+    }
+
+    list[position].color = ORANGE;
+    history.push_back({2, 0, position, list});
+
+    goingSt(0);
+    running();
+}
+
+void SinglyLinkedList::updateNode(int position, std::string data) {
+    if (position < 0 || position >= list.size()) return;
+
+    if (!list.empty()) list = history.back().nodes;
+    idx = 0, history.clear();
+
+    currentPseudocode = updateNodeCode;
+
+    history.push_back({0, 0, 0, list});
+
+    for (int i = 0; i < position; ++i) {
+        list[i].color = ORANGE;
+        history.push_back({1, 0, 0, list});
+        list[i].color = BLACK;
+    }
+
+    list[position].color = ORANGE;
+    history.push_back({1, 0, position, list});
+
+    list[position].data = data;
+    history.push_back({2, 0, position, list});
+
+    list[position].color = BLACK;
+    history.push_back({2, 0, 0, list});
+
+    goingSt(0);
+    running();
+}
+
 void SinglyLinkedList::createRandomList(int n) {
     clear();
     visb = 0;
@@ -657,6 +709,13 @@ void SinglyLinkedList::loadFile() {
     }
 
     fclose(file);
+}
+
+void SinglyLinkedList::fill() {
+    if (history.empty()) return;
+    for (Node &node : history.back().nodes) {
+        node.color = BLACK;
+    }
 }
 
 void SinglyLinkedList::clear() {
@@ -718,19 +777,19 @@ void SinglyLinkedList::handleEvents() {
             loadFile();
         }
 
-        if (CheckCollisionPointRec(mousePosition, addPosButton)) {
+        if (CheckCollisionPointRec(mousePosition, addButton)) {
             inputActive = true;
             inputType = 5;
             memset(inputBuffer, 0, sizeof(inputBuffer));
         }
 
-        if (CheckCollisionPointRec(mousePosition, addHeadButton)) {
+        if (CheckCollisionPointRec(mousePosition, updateButton)) {
             inputActive = true;
             inputType = 1;
             memset(inputBuffer, 0, sizeof(inputBuffer));
         }
 
-        if (CheckCollisionPointRec(mousePosition, addTailButton)) {
+        if (CheckCollisionPointRec(mousePosition, searchButton)) {
             inputActive = true;
             inputType = 2;
             memset(inputBuffer, 0, sizeof(inputBuffer));
@@ -756,7 +815,7 @@ void SinglyLinkedList::handleEvents() {
     if (inputActive) {
         int key = GetCharPressed();
         while (key > 0) {
-            if (((key >= 48) && (key <= 57) && strlen(inputBuffer) < 9) || (key == 32 && inputType == 5)) {
+            if (((key >= 48) && (key <= 57) && strlen(inputBuffer) < 9) || (key == 32 && (inputType == 5 || inputType == 1))) {
                 int len = strlen(inputBuffer);
                 inputBuffer[len] = (char)key;
                 inputBuffer[len + 1] = '\0';
@@ -772,12 +831,22 @@ void SinglyLinkedList::handleEvents() {
         if (IsKeyPressed(KEY_ENTER)) {
             std::string value = inputBuffer;
             if (inputType == 1) {
-                addNodeAtHead(value);
+                int pos = 0, tmp = 0, j = 0;
+                while (j < value.size() && value[j] != ' ') pos = pos * 10 + value[j++] - '0';
+                j++; 
+                if (j >= value.size()) tmp = rand() % 100;
+                else for (int i = j; i < value.size(); i++) tmp = tmp * 10 + value[i] - '0';
+                fill();
+                updateNode(pos, std::to_string(tmp));
             } else if (inputType == 2) {
-                addNodeAtTail(value);
+                int tmp = 0;
+                for (char x: value) tmp = tmp * 10 + x - '0';
+                fill();
+                searchNode(tmp);
             } else if (inputType == 3) {
                 int tmp = 0;
                 for (char x: value) tmp = tmp * 10 + x - '0';
+                fill();
                 deleteNode(tmp);
             } else if (inputType == 4) {
                 createRandomList(std::stoi(value));
@@ -787,6 +856,7 @@ void SinglyLinkedList::handleEvents() {
                 j++; 
                 if (j >= value.size()) tmp = rand() % 100;
                 else for (int i = j; i < value.size(); i++) tmp = tmp * 10 + value[i] - '0';
+                fill();
                 addNodeAtPosition(pos, std::to_string(tmp));
             }
             inputActive = false;
