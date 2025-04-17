@@ -11,14 +11,21 @@ AVLTree::AVLTree() {
 
 void AVLTree::init(){
     int buttonWidth = 120, buttonHeight = 30;
-    int offsetX = 27, offsetY = 120 + 600 - 6*buttonHeight - 5 * 5;
+    int offsetX = 15, offsetY = 120 + 600 - 7*buttonHeight - 6 * 5;
     createButton  = ButtonText(offsetX, offsetY, buttonWidth, buttonHeight, "Create");
     searchButton = ButtonText(offsetX, offsetY + buttonHeight + 5, buttonWidth, buttonHeight, "Search");
     addButton = ButtonText(offsetX, offsetY + 2*buttonHeight + 10, buttonWidth, buttonHeight, "Insert");    
     deleteButton = ButtonText(offsetX, offsetY + 3*buttonHeight + 15, buttonWidth, buttonHeight, "Delete");
-    fileButton = ButtonText(offsetX, offsetY + 4*buttonHeight + 20, buttonWidth, buttonHeight, "File");
-    clearButton = ButtonText(offsetX, offsetY + 5*buttonHeight + 25, buttonWidth, buttonHeight, "Clear");
+    updateButton = ButtonText(offsetX, offsetY + 4*buttonHeight + 20, buttonWidth, buttonHeight, "Update");
+    fileButton = ButtonText(offsetX, offsetY + 5*buttonHeight + 25, buttonWidth, buttonHeight, "File");
+    clearButton = ButtonText(offsetX, offsetY + 6*buttonHeight + 30, buttonWidth, buttonHeight, "Clear");
 
+    createTextBox = InputTextBox({createButton.bounds.x + createButton.bounds.width + 10, createButton.bounds.y, 120, createButton.bounds.height}, "N = ", 3, 20, BLACK, BLACK, LIGHTGRAY);
+    searchTextBox = InputTextBox({searchButton.bounds.x + searchButton.bounds.width + 10, searchButton.bounds.y, 120, searchButton.bounds.height}, "V = ", 3, 20, BLACK, BLACK, LIGHTGRAY);
+    addTextBox = InputTextBox({addButton.bounds.x + addButton.bounds.width + 10, addButton.bounds.y, 120, addButton.bounds.height}, "V = ", 3, 20, BLACK, BLACK, LIGHTGRAY);
+    deleteTextBox = InputTextBox({deleteButton.bounds.x + deleteButton.bounds.width + 10, deleteButton.bounds.y, 120, deleteButton.bounds.height}, "V = ", 3, 20, BLACK, BLACK, LIGHTGRAY);
+    updateUTextBox = InputTextBox({updateButton.bounds.x + updateButton.bounds.width + 10, updateButton.bounds.y, 120, updateButton.bounds.height}, "U = ", 3, 20, BLACK, BLACK, LIGHTGRAY);
+    updateVTextBox = InputTextBox({updateButton.bounds.x + updateButton.bounds.width + 10 + 125, updateButton.bounds.y, 120, updateButton.bounds.height}, "V = ", 3, 20, BLACK, BLACK, LIGHTGRAY);
     // 6 * 30
 
     remote.resize(7);
@@ -35,9 +42,12 @@ void AVLTree::init(){
 
     inputActive = false;
 
-    lineCount = 6;
+    
+    resetTree(MAX_NODES);
+
+    lineCount = 7;
     isPseudocodeVisible = false;
-    togglePseudocodeButton = { (float)screenWidth-20, 550, 20, (float)lineCount * 30};
+    togglePseudocodeButton = { (float)screenWidth-20, 520, 20, (float)lineCount * 30};
 }
 
 
@@ -53,7 +63,7 @@ void AVLTree::updatePseudocodeOn() {
 
 void AVLTree::drawPseudocode(const char** pseudocode, int codeLine1, int codeLine2) {
     float startX = (float)screenWidth - 400 - 5 - 30;
-    float startY = 550;
+    float startY = 520;
 
     float boxWidth = 410;
     float boxHeight = 30;
@@ -68,16 +78,18 @@ void AVLTree::drawPseudocode(const char** pseudocode, int codeLine1, int codeLin
     if(pseudocode == nullptr) return;
 
     for(int i = 0; i < lineCount; ++i){
-        // float newX = startX;
-        // float newY = startY + i * boxHeight;
-        // Rectangle textBox = {newX, newY + 5, boxWidth, boxHeight - 9};
-        // Color backgroundColor = (i == codeLine1 || i == codeLine2) ? GREEN : LIGHTGRAY;
-        // DrawRectangleRec(textBox, backgroundColor);
+        float newX = startX;
+        float newY = startY + i * boxHeight;
+        Rectangle textBox = {newX, newY + 5, boxWidth, boxHeight - 9};
+        Color backgroundColor = (i == codeLine1 || i == codeLine2) ? GREEN : LIGHTGRAY;
+        DrawRectangleRec(textBox, backgroundColor);
 
-        // Color textColor = (i == codeLine1 || i == codeLine2) ? WHITE : BLACK;
-        // DrawTextEx(fontPseudocode, pseudocode[i], { newX + 5, newY + 5 }, 20, 2, textColor);
+        Color textColor = (i == codeLine1 || i == codeLine2) ? WHITE : BLACK;
+        DrawTextEx(fontPseudocode, pseudocode[i], { newX + 5, newY + 5 }, 20, 2, textColor);
     }
 }
+
+
 
 void AVLTree::handleRemote(){
     button &curButton = remote[2];
@@ -122,7 +134,7 @@ void AVLTree::handleRemote(){
                     }
                 } 
                 else if (i == 4) { // Go to end
-                    // curAnimation = Animation.size() - 1;
+                    curAnimation = Animation.size() - 1;
                     timeAnimation = 0.0f;
                     animationState = REPLAY;
                 }
@@ -143,18 +155,197 @@ void AVLTree::handleRemote(){
     else if (animationState == REPLAY) remote[6].DrawBasic(0.6);
 }
 
+Vector2 AVLTree::newPosVector2(Vector2 A, Vector2 B, float opacity){
+    return {A.x + (B.x - A.x) * opacity, A.y + (B.y - A.y) * opacity};
+}
+
+
+void AVLTree::drawAnimation(SnapShot curShot, float opacity){
+    for(int i = 0; i < curShot.nodes.size(); ++i){
+        NodeTree &u = curShot.nodes[i];
+        if(!u.isUsed) continue;
+        if(animationState == PAUSE) u.node.position = u.newPosition;
+        else u.node.position = newPosVector2(u.oldPosition, u.newPosition, opacity);
+        if(u.isDrawBalance) u.drawBalance();
+        if(u.isDrawRemove) u.drawRemove();
+        u.node.draw(1.0f);
+    }
+    for (int i = 0; i < curShot.nodes.size(); ++i) {
+        if (!curShot.nodes[i].isUsed) continue;
+        NodeTree &u = curShot.nodes[i];
+        if (u.left != -1) {
+            NodeTree &v = curShot.nodes[u.left];
+            if(compareColor(u.node.color, v.node.color)) DrawConnection(u.node.position, v.node.position, false, u.node.color, 4.0f, u.node.radius, v.node.radius);
+            else if(v.isUpdate) DrawConnection(u.node.position, v.node.position, false, edgeColor, 4.0f, u.node.radius, v.node.radius);
+            else DrawConnection(u.node.position, v.node.position, false, edgeColor, 4.0f, u.node.radius, v.node.radius);
+        }
+        if (u.right != -1) {
+            NodeTree &v = curShot.nodes[u.right];
+            if(compareColor(u.node.color, v.node.color)) DrawConnection(u.node.position, v.node.position, false, u.node.color, 4.0f, u.node.radius, v.node.radius);
+            else if(v.isUpdate) DrawConnection(u.node.position, v.node.position, false, edgeColor, 4.0f, u.node.radius, v.node.radius);
+            else DrawConnection(u.node.position, v.node.position, false, edgeColor, 4.0f, u.node.radius, v.node.radius);
+        }
+    }
+    if(isPseudocodeVisible){
+        drawPseudocode(curShot.code, curShot.codeLine1, curShot.codeLine2); // Draw the pseudocode
+    }
+}
+
 void AVLTree::draw(){
     handleRemote();
-    
+
+    if(Animation.size() > 0){
+        if (animationState != PAUSE) timeAnimation += GetFrameTime(); // Update the animation time
+        if(timeAnimation > deltaTime && animationState != PAUSE){
+            if(curAnimation + 1 < Animation.size()){
+                curAnimation++; // Move to the next animation frame
+                timeAnimation = 0; // Reset the animation time
+            }
+            else{
+                timeAnimation = deltaTime; // Reset the animation time
+                animationState = REPLAY;
+            }
+        }
+
+        float opacity = std::min((double)1.0, timeAnimation / deltaTime); // Calculate the scale for the animation
+        drawAnimation(Animation[curAnimation], opacity); // Draw the current animation frame
+    }
+    else{
+        if(isPseudocodeVisible){
+            drawPseudocode(nullptr, -1, -1); // Draw the pseudocode
+        }
+    }
+
     drawButtons();
 }
 
-void AVLTree::loadFile(){
 
+//---------------------Handle Operations For AVL Tree---------------------//
+void AVLTree::initializeAVLTree(int n){
+    if(n == 0){
+        std::cout << "Tree is empty\n";
+        return;
+    }
+    Animation.clear();
+    curAnimation = 0; // Reset the current animation index
+    timeAnimation = 0.0f; // Reset the current time    
+    animationState = PLAY;
+
+    root = -1;
+    for(int i = 0; i < capacity; ++i) nodes[i] = NodeTree();
+    for(int i = 0; i < n; ++i){
+        int value = GetRandomValue(1, 99); // Generate a random value between 1 and 99
+        std::cout << value << ',';
+        resetNodes();
+        curAnimation = 0; // Reset the current animation index
+        timeAnimation = 0.0f; // Reset the current time    
+        animationState = PLAY;
+        root = insertNode(root, value, 0, -1);
+        generatePosition(root, root, 150, screenWidth - 30, 100, 100);
+        Animation.push_back(SnapShot(nodes, root, insertValueCode, 0, 0));
+    }
+    std::cout << '\n';
+}
+
+//94,90,38,68,33,28,79,43,19,47,99,59,66,77,7,12,6,1,76,85,84,32,14,18,55,45,16
+//67,17,64,90,66,6,4,53,61,22,94,69,83,87,56,36,88,13,32,83,6,30,79,84,64,91,74,91,2,5,9,94,92,48,2
+
+void AVLTree::search(int value){
+    Animation.clear();
+    resetNodes();
+    curAnimation = 0; // Reset the current animation index
+    timeAnimation = 0.0f; // Reset the current time    
+    animationState = PLAY;
+    searchNode(root, value);
+    resetNodes();
+}
+
+void AVLTree::insert(int value){
+    Animation.clear();
+    resetNodes();
+    curAnimation = 0; // Reset the current animation index
+    timeAnimation = 0.0f; // Reset the current time    
+    animationState = PLAY;
+    root = insertNode(root, value, 0, -1);
+    generatePosition(root, root, 150, screenWidth - 30, 100, 100);
+    Animation.push_back(SnapShot(nodes, root, insertValueCode, 6, 6));
+    resetNodes();
+}
+
+void AVLTree::remove(int value){
+    if(checkEmpty()){
+        std::cout << "Tree is empty\n";
+        return;
+    }
+    Animation.clear();
+    resetNodes();
+    curAnimation = 0; // Reset the current animation index
+    timeAnimation = 0.0f; // Reset the current time    
+    animationState = PLAY;
+    root = deleteNode(root, value, 0, -1);
+    generatePosition(root, root, 150, screenWidth - 30, 100, 100);
+    Animation.push_back(SnapShot(nodes, root, deleteValueCode, 6, 6)); 
+    resetNodes();
+}
+
+void AVLTree::update(int u, int v){
+    Animation.clear();
+    resetNodes();
+    curAnimation = 0; // Reset the current animation index
+    timeAnimation = 0.0f; // Reset the current time    
+    animationState = PLAY;
+    if(!checkEmpty()){
+        root = deleteNode(root, u, 0, -1);
+        generatePosition(root, root, 150, screenWidth - 30, 100, 100);
+        Animation.push_back(SnapShot(nodes, root, deleteValueCode, 6, 6)); 
+        resetNodes();
+    }
+    else std::cout << "Tree is empty!!!\n";
+
+    root = insertNode(root, v, 0, -1);
+    generatePosition(root, root, 150, screenWidth - 30, 100, 100);
+    Animation.push_back(SnapShot(nodes, root, insertValueCode, 6, 6));
+    resetNodes();
+}
+
+void AVLTree::loadFile(){
+    const char* filepath = tinyfd_openFileDialog(
+        "Choose file",    
+        "",                
+        0, NULL,           
+        NULL,              
+        0                  
+    );
+
+    FILE* file = fopen(filepath, "r");
+    if (file == NULL) {
+        printf("Error.\n");
+        return;
+    }
+
+    clear();
+
+    int n;
+    fscanf(file, "%d", &n); // Read the number of elements
+    if(n == 0) return;
+    for(int i = 0; i < n; ++i){
+        int value;
+        fscanf(file, "%d", &value); // Read the elements from the file
+        root = insertNode(root, value, 0, -1);
+        generatePosition(root, root, 150, screenWidth - 30, 100, 100);
+        Animation.push_back(SnapShot(nodes, root, insertValueCode, 6, 6));
+        resetNodes();
+    }
+    fclose(file);
 }
 
 void AVLTree::clear(){
-
+    Animation.clear();
+    root = -1;
+    for(int i = 0; i < nodes.size(); ++i) nodes[i] = NodeTree();
+    curAnimation = 0; // Reset the current animation index
+    timeAnimation = 0.0f; // Reset the current time    
+    animationState = PLAY;
 }
 
 void AVLTree::handleEvents(){
@@ -164,24 +355,34 @@ void AVLTree::handleEvents(){
         // Check if the create button is clicked
         if (createButton.IsHovered(mousePosition)) {
             inputActive = true;
-            inputType = 1; // Set input type to create
+            inputType = 1;
+            createTextBox.createRandomValue(1, 99);
         }
         else if (searchButton.IsHovered(mousePosition)) {
             inputActive = true;
             inputType = 2; // Set input type to search
+            searchTextBox.createRandomValue(1, 999);
         }
 
         // Check if the insert button is clicked
         else if (addButton.IsHovered(mousePosition)) {
             inputActive = true;
             inputType = 3; // Set input type to insert
-
+            addTextBox.createRandomValue(1, 999);
         }
 
         // Check if the delete button is clicked
         else if (deleteButton.IsHovered(mousePosition)) {
             inputActive = true;
             inputType = 4; // Set input type to delete
+            deleteTextBox.createRandomValue(1, 999);  
+        }
+
+        else if (updateButton.IsHovered(mousePosition)){
+            inputActive = true;
+            inputType = 5;
+            updateUTextBox.createRandomValue(1, 999);
+            updateVTextBox.createRandomValue(1, 999);
         }
 
         //Check if the file button is clicked
@@ -192,44 +393,33 @@ void AVLTree::handleEvents(){
         else if (clearButton.IsHovered(mousePosition)) {
             clear(); // Clear the hash table
         }
-        
-        // If no button is clicked, deactivate input
-        else if (inputActive) {
-            inputActive = false; // Deactivate input if no button is clicked
-            inputType = 0; // Reset input type
-        }
     }
-    
-    // Handle keyboard input
-    if (inputActive) {
-        int key = GetCharPressed(); 
-        while (key > 0) {
-            // Check if the key is a valid character from 'a' to 'z' or 'A' to 'Z'
-            if (((int)('A') <= key && key <= (int)('Z')) || ((int)('a') <= key && key <= (int)('z'))) {
-                int len = strlen(inputBuffer);
-                if(len >= 20) break;
-                if((int)('a') <= key && key <= (int)('z')) key -= 32; // Convert lowercase to uppercase
-                inputBuffer[len] = (char)key;
-                inputBuffer[len + 1] = '\0';
-            }
-            key = GetCharPressed();
-        }
 
-        if(IsKeyPressed(KEY_BACKSPACE)) { 
-            int len = strlen(inputBuffer);
-            if (len > 0) inputBuffer[len - 1] = '\0';
-        }
-
-        if (IsKeyPressed(KEY_ENTER)) {
-            // std::cerr << inputBuffer << ' ' << value << '\n';
-            switch (inputType) {
-                // case 1: createRandomTrie(); break;
-                // case 2: search(inputBuffer); break; 
-                // case 3: insert(inputBuffer); break;
-                // case 4: remove(inputBuffer); break; 
+    if(inputActive){
+        if(IsKeyPressed(KEY_ENTER)){
+            if(inputType == 1){
+                createTextBox.Update();
+                initializeAVLTree(createTextBox.GetIntValue());
             }
-            inputActive = false; 
-            inputType = 0;
+            else if(inputType == 2){
+                searchTextBox.Update();
+                search(searchTextBox.GetIntValue());
+            }
+            else if(inputType == 3){
+                addTextBox.Update();
+                insert(addTextBox.GetIntValue());
+            }
+            else if(inputType == 4){
+                deleteTextBox.Update();
+                remove(deleteTextBox.GetIntValue());
+            }
+            else if(inputType == 5){
+                updateUTextBox.Update();
+                updateVTextBox.Update();
+                update(updateUTextBox.GetIntValue(), updateVTextBox.GetIntValue());
+            }
+            inputActive = false; // Deactivate input after processing
+            inputType = 0; // Reset input type
         }
     }
 }
@@ -241,6 +431,7 @@ void AVLTree::drawButtons() {
     addButton.Update();
     searchButton.Update();
     deleteButton.Update();
+    updateButton.Update();
     createButton.Update();
     fileButton.Update();
     clearButton.Update();
@@ -248,16 +439,35 @@ void AVLTree::drawButtons() {
     addButton.Draw();
     searchButton.Draw();
     deleteButton.Draw();
+    updateButton.Draw();
     createButton.Draw();
     fileButton.Draw();
     clearButton.Draw();
 
-
-    // Draw the input buffer if input is active
-    // if (inputActive) {
-    //     DrawRectangle(50, 720 - 4*30 - 5, 120, 30, LIGHTGRAY); // Draw input box
-    //     DrawText(inputBuffer, 55, 720 - 4*30 - 5 + 5, 20, BLACK); // Draw input text
-    // }
+    if(inputActive){
+        if(inputType == 1){
+            createTextBox.Update();
+            createTextBox.Draw();
+        }
+        else if(inputType == 2){
+            searchTextBox.Update();
+            searchTextBox.Draw();
+        }
+        else if(inputType == 3){
+            addTextBox.Update();
+            addTextBox.Draw();
+        }
+        else if(inputType == 4){
+            deleteTextBox.Update();
+            deleteTextBox.Draw();
+        }
+        else if(inputType == 5){
+            updateUTextBox.Update();                      
+            updateVTextBox.Update();
+            updateUTextBox.Draw();
+            updateVTextBox.Draw();
+        }
+    }
 
     DrawRectangleRec(togglePseudocodeButton, GREEN);
     if (isPseudocodeVisible) {
@@ -266,41 +476,6 @@ void AVLTree::drawButtons() {
     } else {
         // DrawRectangleLinesEx(togglePseudocodeButton, 2, BLACK);
         DrawTextEx(customFont, "<", { togglePseudocodeButton.x + (togglePseudocodeButton.width - MeasureText("<", 20)) / 2, togglePseudocodeButton.y + (togglePseudocodeButton.height - 20) / 2 }, 20, 2, WHITE);
-    }
-
-    if (inputActive) {
-        if (inputType == 1){  //Create
-            DrawRectangle(createButton.bounds.x + createButton.bounds.width + 10, createButton.bounds.y, 120, createButton.bounds.height, PINK); // Draw input box
-            DrawText("N = ", createButton.bounds.x + createButton.bounds.width + 15, createButton.bounds.y + 5, 20, BLACK); // Draw input text
-            DrawText(inputBuffer, createButton.bounds.x + createButton.bounds.width + 55, createButton.bounds.y + 5, 20, BLACK); // Draw input text
-            if (inputBuffer && static_cast<int>(GetTime() * 2) % 2 == 0){
-                DrawText("|", createButton.bounds.x + createButton.bounds.width + 55 + MeasureText(inputBuffer, 20), createButton.bounds.y + 5, 20, BLACK); // Draw cursor
-            }
-        }
-        else if (inputType == 2){ // Search
-            DrawRectangle(searchButton.bounds.x + searchButton.bounds.width + 10, searchButton.bounds.y, 150, searchButton.bounds.height, PINK); // Draw input box
-            DrawText("V = ", searchButton.bounds.x + searchButton.bounds.width + 15, searchButton.bounds.y + 5, 20, BLACK); // Draw input text
-            DrawText(inputBuffer, searchButton.bounds.x + searchButton.bounds.width + 55, searchButton.bounds.y + 5, 20, BLACK); // Draw input text
-            if(static_cast<int>(GetTime() * 2) % 2 == 0){
-                DrawText("|", searchButton.bounds.x + searchButton.bounds.width + 55 + MeasureText(inputBuffer, 20), searchButton.bounds.y + 5, 20, BLACK); // Draw cursor
-            }
-        }
-        else if (inputType == 3){ // Insert
-            DrawRectangle(addButton.bounds.x + addButton.bounds.width + 10, addButton.bounds.y, 150, addButton.bounds.height, PINK); // Draw input box
-            DrawText("V = ", addButton.bounds.x + addButton.bounds.width + 15, addButton.bounds.y + 5, 20, BLACK); // Draw input text
-            DrawText(inputBuffer, addButton.bounds.x + addButton.bounds.width + 55, addButton.bounds.y + 5, 20, BLACK); // Draw input text
-            if(static_cast<int>(GetTime() * 2) % 2 == 0){
-                DrawText("|", addButton.bounds.x + addButton.bounds.width + 55 + MeasureText(inputBuffer, 20), addButton.bounds.y + 5, 20, BLACK); // Draw cursor
-            }
-        }
-        else if (inputType == 4){ // Delete
-            DrawRectangle(deleteButton.bounds.x + deleteButton.bounds.width + 10, deleteButton.bounds.y, 150, deleteButton.bounds.height, PINK); // Draw input box
-            DrawText("V = ", deleteButton.bounds.x + deleteButton.bounds.width + 15, deleteButton.bounds.y + 5, 20, BLACK); // Draw input text
-            DrawText(inputBuffer, deleteButton.bounds.x + deleteButton.bounds.width + 55, deleteButton.bounds.y + 5, 20, BLACK); // Draw input text
-            if(static_cast<int>(GetTime() * 2) % 2 == 0){
-                DrawText("|", deleteButton.bounds.x + deleteButton.bounds.width + 55 + MeasureText(inputBuffer, 20), deleteButton.bounds.y + 5, 20, BLACK); // Draw cursor
-            }
-        }
     }
 }
 

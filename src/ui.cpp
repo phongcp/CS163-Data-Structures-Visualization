@@ -55,9 +55,9 @@ void Tool::init(){
     gtt = -1e8;            // Khởi tạo thời gian với giá trị âm lớn
 
     // Khởi tạo 3 button chính của giao diện
-    Button[0] = button({0,0},{1440,810},              // Background
-        LoadTexture("../assets/in_app/bg_app.png"),
-        RAYWHITE, 0);     
+    // Button[0] = button({0,0},{1440,810},              // Background
+    //     LoadTexture("../assets/in_app/bg_app.png"),
+    //     RAYWHITE, 0);     
 
     Button[1] = button({-100,-4},{220,43},            // Logo
         LoadTexture("../assets/bg/name.png"),

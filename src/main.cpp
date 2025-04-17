@@ -16,11 +16,11 @@ int main() {
     while (!WindowShouldClose()) {
         BeginDrawing();
 
-        // ClearBackground(isLightMode ? RAYWHITE : ConvertToDarkMode(RAYWHITE)); // Clear the background
-        // DrawRectangle(0,0,screenWidth,60, isLightMode ? DARKGRAY : ConvertToDarkMode(DARKGRAY)); // Vẽ background
-        // DrawRectangle(0,screenHeight - 80,screenWidth,80, isLightMode ? DARKGRAY : ConvertToDarkMode(DARKGRAY)); // Vẽ background
+        ClearBackground(isLightMode ? RAYWHITE : Color({31, 31, 31, 255})); // Clear the background
+        DrawRectangle(0,0,screenWidth,60, isLightMode ? GRAY  : DARKGRAY); // Vẽ background
+        DrawRectangle(0,screenHeight - 80,screenWidth,80, isLightMode ? GRAY : DARKGRAY); // Vẽ background
 
-        ClearBackground(RAYWHITE);
+        // ClearBackground(RAYWHITE);
         event();
         draw();
 

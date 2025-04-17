@@ -4,6 +4,12 @@
 #include <bits/stdc++.h>
 #include <raylib.h>
 
+#define MINTCREAM CLITERAL(Color){245,255,250,255}
+#define STEELBLUE CLITERAL(Color){70,130,180,255}
+#define LIGHTSTEELBLUE CLITERAL(Color){176,196,222,255}
+#define DEEPSKYBLUE CLITERAL(Color){0,191,255,255}
+#define CADETBLUE CLITERAL(Color){95,158,160,255}
+
 extern const int screenWidth;
 extern const int screenHeight;
 
@@ -124,6 +130,115 @@ struct ButtonText{
         DrawTextEx(customFont, text, {textX, textY}, 17, 1.0f, WHITE); // Draw the text in the button
     }
 };
+
+
+
+class InputTextBox {
+private:
+    Rectangle bounds;
+    std::string text;
+    std::string prefix;
+    bool isActive;
+    int maxLength;
+    float fontSize;
+    Color borderColor;
+    Color textColor;
+    Color backgroundColor;
+
+public:
+    InputTextBox(){};
+    InputTextBox(Rectangle rect, std::string prefixStr = "", int maxLen = 32, float fontSize = 20.0f,
+                    Color borderColor = BLACK, Color textColor = BLACK, Color bgColor = RAYWHITE)
+        : bounds(rect), prefix(prefixStr), maxLength(maxLen), fontSize(fontSize),
+            borderColor(borderColor), textColor(textColor), backgroundColor(bgColor),
+            isActive(false) {}
+    
+    void createRandomValue(int l, int r){
+        int randomValue = GetRandomValue(l, r);
+        text = std::to_string(randomValue);
+    }
+
+    void Update() {
+        Vector2 mousePos = GetMousePosition();
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            bool wasActive = isActive;
+            isActive = CheckCollisionPointRec(mousePos, bounds);
+
+            // // Generate random number when newly clicked
+            // if (isActive && !wasActive) {
+            //     int randomValue = GetRandomValue(0, 99);
+            //     text = std::to_string(randomValue);
+            // }
+        }
+
+        if (isActive) {
+            int key = GetCharPressed();
+            while (key > 0) {
+                if ((key >= 32) && (key <= 125) && (text.length() < maxLength)) {
+                    text += static_cast<char>(key);
+                }
+                key = GetCharPressed();
+            }
+
+            if (IsKeyPressed(KEY_BACKSPACE) && !text.empty()) {
+                text.pop_back();
+            }
+        }
+    }
+
+    void Draw() const {
+        DrawRectangleRec(bounds, backgroundColor);
+        DrawRectangleLinesEx(bounds, 2, borderColor);
+
+        float prefixWidth = MeasureText(prefix.c_str(), fontSize);
+        float yOffset = bounds.y + (bounds.height - fontSize) / 2;
+
+        // Draw prefix
+        DrawText(prefix.c_str(), bounds.x + 5, yOffset, fontSize, textColor);
+
+        // Draw text
+        DrawText(text.c_str(), bounds.x + 5 + prefixWidth, yOffset, fontSize, textColor);
+
+        // Draw cursor
+        if (isActive && ((GetTime() * 2.0f) - static_cast<int>(GetTime() * 2.0f) < 0.5f)) {
+            float textWidth = MeasureText(text.c_str(), fontSize);
+            DrawText("_", bounds.x + 5 + prefixWidth + textWidth + 2, yOffset, fontSize, textColor);
+        }
+    }
+
+    int GetIntValue() const {
+        return std::stoi(text);
+    }
+
+    std::string GetText() const {
+        return text;
+    }
+
+    void SetText(const std::string& newText) {
+        text = newText.substr(0, maxLength);
+    }
+
+    void Clear() {
+        text.clear();
+    }
+
+    void SetActive(bool active) {
+        isActive = active;
+    }
+
+    bool IsActive() const {
+        return isActive;
+    }
+
+    void SetPrefix(const std::string& newPrefix) {
+        prefix = newPrefix;
+    }
+
+    std::string GetPrefix() const {
+        return prefix;
+    }
+};
+
 
 
 struct HSLColor {

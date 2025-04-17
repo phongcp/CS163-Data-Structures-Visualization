@@ -118,10 +118,10 @@ private:
     const char* deleteValueCode[6] = {
         "id = value % size\n",
         "while (hash[id] != EMPTY)\n",
-        "    if (hash[id] == value) hash[id] = DELETED, K++, return\n",
-        "    id = (id + 1) % size\n",
+        "  if (hash[id] == value) ",
+        "    hash[id] = DELETED,K++,return\n",
+        "  id = (id + 1) % size\n",
         "return NOT_FOUND\n",
-        ""
     };
 
     enum ANIMATION_STATE{PAUSE, PLAY, REPLAY};
@@ -135,10 +135,6 @@ private:
 
     int capacity;                // Maximum size of the table
     int size;                    // Current number of elements in the table
-    char inputBuffer[5]; // Buffer for user input
-    char inputSizeBuffer[3]; // Buffer for user input (for size)
-    char inputCapacityBuffer[3]; // Buffer for user input (for size)
-    bool isGetInputCapacity = false, isGetInputSize = false;
     bool inputActive;    // Flag to check if input is active
     int inputType;       // Type of input (0: None, 1: Create, 2: Search, 3: Insert, 4: Delete)    
 
@@ -152,9 +148,17 @@ private:
     ButtonText addButton; // Button to add a new key-value pair
     ButtonText searchButton; // Button to search for a value by key
     ButtonText deleteButton; // Button to delete a key-value pair
+    ButtonText updateButton;
     ButtonText createButton; // Button to create a random hash table
     ButtonText fileButton; // Button to handle file operations
     ButtonText clearButton; // Button to clear the hash table
+
+    InputTextBox createNTextBox; 
+    InputTextBox createKTextBox;
+    InputTextBox searchTextBox;
+    InputTextBox addTextBox;
+    InputTextBox updateUTextBox, updateVTextBox;
+    InputTextBox deleteTextBox;
 
     Rectangle sizeInputBox; // Rectangle for size input box
 public:
@@ -166,6 +170,7 @@ public:
     void insert(int);
     void search(int);
     void remove(int);
+    void update(int, int);
     void clear();
     void loadFile();
     void handleEvents();

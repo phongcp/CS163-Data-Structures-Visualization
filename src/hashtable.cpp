@@ -7,20 +7,31 @@ HashTable::HashTable() : capacity(0),
     size(0),
     inputActive(false),
     inputType(0){
-    memset(inputBuffer, 0, sizeof(inputBuffer)); // Clear the input buffer
+
 }
 
 // Initialize the hash table
 void HashTable::init(){
     int buttonWidth = 120, buttonHeight = 30;
-    int offsetX = 27, offsetY = 120 + 600 - 6*buttonHeight - 5 * 5;
+    int offsetX = 27, offsetY = 120 + 600 - 7*buttonHeight - 6 * 5;
     createButton  = ButtonText(offsetX, offsetY, buttonWidth, buttonHeight, "Create");
     sizeInputBox = {createButton.bounds.x + createButton.bounds.width + 10 + 125, createButton.bounds.y, 120, createButton.bounds.height};
     searchButton = ButtonText(offsetX, offsetY + buttonHeight + 5, buttonWidth, buttonHeight, "Search");
     addButton = ButtonText(offsetX, offsetY + 2*buttonHeight + 10, buttonWidth, buttonHeight, "Insert");    
-    deleteButton = ButtonText(offsetX, offsetY + 3*buttonHeight + 15, buttonWidth, buttonHeight, "Delete");
-    fileButton = ButtonText(offsetX, offsetY + 4*buttonHeight + 20, buttonWidth, buttonHeight, "File");
-    clearButton = ButtonText(offsetX, offsetY + 5*buttonHeight + 25, buttonWidth, buttonHeight, "Clear");
+    updateButton = ButtonText(offsetX, offsetY + 3*buttonHeight + 15, buttonWidth, buttonHeight, "Update");
+    deleteButton = ButtonText(offsetX, offsetY + 4*buttonHeight + 20, buttonWidth, buttonHeight, "Delete");
+    fileButton = ButtonText(offsetX, offsetY + 5*buttonHeight + 25, buttonWidth, buttonHeight, "File");
+    clearButton = ButtonText(offsetX, offsetY + 6*buttonHeight + 30, buttonWidth, buttonHeight, "Clear");
+
+    createNTextBox = InputTextBox({createButton.bounds.x + createButton.bounds.width + 10, createButton.bounds.y, 120, createButton.bounds.height}, "N = ", 3, 20, BLACK, BLACK, LIGHTGRAY);
+    createKTextBox = InputTextBox({createButton.bounds.x + createButton.bounds.width + 10 + 125, createButton.bounds.y, 120, createButton.bounds.height}, "K = ", 3, 20, BLACK, BLACK, LIGHTGRAY);
+    searchTextBox = InputTextBox({searchButton.bounds.x + searchButton.bounds.width + 10, searchButton.bounds.y, 120, searchButton.bounds.height}, "V = ", 3, 20, BLACK, BLACK, LIGHTGRAY);
+    addTextBox = InputTextBox({addButton.bounds.x + addButton.bounds.width + 10, addButton.bounds.y, 120, addButton.bounds.height}, "V = ", 3, 20, BLACK, BLACK, LIGHTGRAY);
+    updateUTextBox = InputTextBox({updateButton.bounds.x + updateButton.bounds.width + 10, updateButton.bounds.y, 120, updateButton.bounds.height}, "U = ", 3, 20, BLACK, BLACK, LIGHTGRAY);
+    updateVTextBox = InputTextBox({updateButton.bounds.x + updateButton.bounds.width + 10 + 125, updateButton.bounds.y, 120, updateButton.bounds.height}, "V = ", 3, 20, BLACK, BLACK, LIGHTGRAY);
+    deleteTextBox = InputTextBox({deleteButton.bounds.x + deleteButton.bounds.width + 10, deleteButton.bounds.y, 120, deleteButton.bounds.height}, "V = ", 3, 20, BLACK, BLACK, LIGHTGRAY);
+    
+
 
     // 6 * 30
 
@@ -329,22 +340,22 @@ void HashTable::remove(int num){
     while(hashTable[index].data != EMPTY){
         if(hashTable[index].data == num){
             hashTable[index] = NodeHashTable(hashTable[index].data, generatePosition(index), RED, DARKGRAY, FULL_RADIUS, customFont, 20.0f, true);
-            Animation.push_back(Snapshot(hashTable, deleteValueCode, 1, 2)); // Add the current state of the hash table to the animation history
+            Animation.push_back(Snapshot(hashTable, deleteValueCode, 2, 3)); // Add the current state of the hash table to the animation history
             hashTable[index].isUpdate = false; // Mark the cell as not updated
 
             hashTable[index].data = DELETED; // Mark the cell as deleted
             hashTable[index] = NodeHashTable(hashTable[index].data, generatePosition(index), RED, DARKGRAY, FULL_RADIUS, customFont, 20.0f, true);
-            Animation.push_back(Snapshot(hashTable, deleteValueCode, 1, 2)); // Add the current state of the hash table to the animation history
+            Animation.push_back(Snapshot(hashTable, deleteValueCode, 2, 3)); // Add the current state of the hash table to the animation history
             hashTable[index].isUpdate = false; // Mark the cell as not updated
             return;
         }
         else{
             hashTable[index] = NodeHashTable(hashTable[index].data, generatePosition(index), YELLOW, DARKGRAY, FULL_RADIUS, customFont, 20.0f, true);
-            Animation.push_back(Snapshot(hashTable, deleteValueCode, 1, 3)); // Add the current state of the hash table to the animation history
+            Animation.push_back(Snapshot(hashTable, deleteValueCode, 1, 4)); // Add the current state of the hash table to the animation history
             hashTable[index].isUpdate = false; // Mark the cell as not updated
     
             hashTable[index] = NodeHashTable(hashTable[index].data, generatePosition(index), LIGHTGRAY, YELLOW, FULL_RADIUS, customFont, 20.0f, true);
-            Animation.push_back(Snapshot(hashTable, deleteValueCode, 1, 3));
+            Animation.push_back(Snapshot(hashTable, deleteValueCode, 1, 4));
             hashTable[index].isUpdate = false; 
         }
         index = (index + 1) % capacity; 
@@ -354,6 +365,83 @@ void HashTable::remove(int num){
     }
     hashTable[index] = NodeHashTable(hashTable[index].data, generatePosition(index), YELLOW, DARKGRAY, FULL_RADIUS, customFont, 20.0f, true);
     Animation.push_back(Snapshot(hashTable, deleteValueCode, 4, 4)); // Add the current state of the hash table to the animation history
+    hashTable[index].isUpdate = false; // Mark the cell as not updated
+}
+
+void HashTable::update(int u, int v){
+    if(capacity == 0) return;
+    Animation.clear();
+    curAnimation = 0;
+    timeAnimation = 0.0f;
+    animationState = PLAY;
+
+    // Delete the old value
+    for(int i = 0; i < capacity; ++i){
+        hashTable[i] = NodeHashTable(hashTable[i].data, generatePosition(i), LIGHTGRAY, DARKGRAY, FULL_RADIUS, customFont, 20.0f, false);
+    }
+    Animation.push_back(Snapshot(hashTable, deleteValueCode, 0, 0));
+    int index = u % capacity; // Hash function to find the index
+    int startIndex = index; // Store the starting index for collision detection
+    while(hashTable[index].data != EMPTY){
+        if(hashTable[index].data == u){
+            hashTable[index] = NodeHashTable(hashTable[index].data, generatePosition(index), RED, DARKGRAY, FULL_RADIUS, customFont, 20.0f, true);
+            Animation.push_back(Snapshot(hashTable, deleteValueCode, 2, 3)); // Add the current state of the hash table to the animation history
+            hashTable[index].isUpdate = false; // Mark the cell as not updated
+
+            hashTable[index].data = DELETED; // Mark the cell as deleted
+            hashTable[index] = NodeHashTable(hashTable[index].data, generatePosition(index), RED, DARKGRAY, FULL_RADIUS, customFont, 20.0f, true);
+            Animation.push_back(Snapshot(hashTable, deleteValueCode, 2, 3)); // Add the current state of the hash table to the animation history
+            hashTable[index].isUpdate = false; // Mark the cell as not updated
+            break;
+        }
+        else{
+            hashTable[index] = NodeHashTable(hashTable[index].data, generatePosition(index), YELLOW, DARKGRAY, FULL_RADIUS, customFont, 20.0f, true);
+            Animation.push_back(Snapshot(hashTable, deleteValueCode, 1, 4)); // Add the current state of the hash table to the animation history
+            hashTable[index].isUpdate = false; // Mark the cell as not updated
+    
+            hashTable[index] = NodeHashTable(hashTable[index].data, generatePosition(index), LIGHTGRAY, YELLOW, FULL_RADIUS, customFont, 20.0f, true);
+            Animation.push_back(Snapshot(hashTable, deleteValueCode, 1, 4));
+            hashTable[index].isUpdate = false; 
+        }
+        index = (index + 1) % capacity; 
+        if(index == startIndex){
+            break;
+        }
+    }
+    hashTable[index] = NodeHashTable(hashTable[index].data, generatePosition(index), YELLOW, DARKGRAY, FULL_RADIUS, customFont, 20.0f, true);
+    Animation.push_back(Snapshot(hashTable, deleteValueCode, 2, 3)); // Add the current state of the hash table to the animation history
+    hashTable[index].isUpdate = false; // Mark the cell as not updated
+
+
+    // Insert the new value
+    for(int i = 0; i < capacity; ++i){
+        hashTable[i] = NodeHashTable(hashTable[i].data, generatePosition(i), LIGHTGRAY, DARKGRAY, FULL_RADIUS, customFont, 20.0f, false);
+    }
+
+    if(size + 1 >= capacity){
+        Animation.push_back(Snapshot(hashTable, insertValueCode, 0, 0));
+        return;
+    }
+    else Animation.push_back(Snapshot(hashTable, insertValueCode, 0, 1));
+
+    index = v % capacity; // Hash function to find the index
+    startIndex = index; // Store the starting index for collision detection
+    while (hashTable[index].data != EMPTY && hashTable[index].data != DELETED) { // Find an empty slot by linear probing
+        // Add the animation for collision
+        hashTable[index] = NodeHashTable(hashTable[index].data, generatePosition(index), YELLOW, DARKGRAY, FULL_RADIUS, customFont, 20.0f, true);
+        Animation.push_back(Snapshot(hashTable, insertValueCode, 2, 3)); // Add the current state of the hash table to the animation history
+        hashTable[index].isUpdate = false; // Mark the cell as not updated
+
+        hashTable[index] = NodeHashTable(hashTable[index].data, generatePosition(index), LIGHTGRAY, YELLOW, FULL_RADIUS, customFont, 20.0f, true);
+        Animation.push_back(Snapshot(hashTable, insertValueCode, 2, 3));
+        hashTable[index].isUpdate = false; 
+
+        index = (index + 1) % capacity;
+    }
+    ++size;
+    hashTable[index].data = v; // Insert the number into the hash table
+    hashTable[index] = NodeHashTable(hashTable[index].data, generatePosition(index), SKYBLUE, DARKBLUE, FULL_RADIUS, customFont, 20.0f, true);
+    Animation.push_back(Snapshot(hashTable, insertValueCode, 4, 4)); // Add the current state of the hash table to the animation history
     hashTable[index].isUpdate = false; // Mark the cell as not updated
 }
 
@@ -403,6 +491,7 @@ void HashTable::loadFile(){
                                     true);
     }
     Animation.push_back(Snapshot(hashTable));
+    fclose(file);
 }
 
 void HashTable::handleEvents(){
@@ -413,36 +502,37 @@ void HashTable::handleEvents(){
         // Check if the create button is clicked
         if (createButton.IsHovered(mousePosition)) {
             inputActive = true;
-            inputType = 1; // Set input type to create
-            // memset(inputCapacityBuffer, 0, sizeof(inputCapacityBuffer)); // Clear the input buffer
-            // memset(inputSizeBuffer, 0, sizeof(inputSizeBuffer)); // Clear the input size buffer
+            inputType = 1;
+            createNTextBox.createRandomValue(1, 99);
+            createKTextBox.createRandomValue(1, createNTextBox.GetIntValue() / 2);
         } 
         
         // Check if the search button is clicked
         else if (searchButton.IsHovered(mousePosition)) {
             inputActive = true;
-            inputType = 2; // Set input type to search
-            inputBuffer[0] = Rand(0, 9) + '0'; inputBuffer[1] = Rand(0, 9) + '0';
-            if(inputBuffer[0] == '0') inputBuffer[0] = inputBuffer[1], inputBuffer[1] = '\0';
-            else inputBuffer[2] = '\0';
+            inputType = 2;
+            searchTextBox.createRandomValue(1, 999);
         }
 
         // Check if the insert button is clicked
         else if (addButton.IsHovered(mousePosition)) {
             inputActive = true;
-            inputType = 3; // Set input type to insert
-            inputBuffer[0] = Rand(0, 9) + '0'; inputBuffer[1] = Rand(0, 9) + '0';
-            if(inputBuffer[0] == '0') inputBuffer[0] = inputBuffer[1], inputBuffer[1] = '\0';
-            else inputBuffer[2] = '\0';
+            inputType = 3; 
+            addTextBox.createRandomValue(1, 999);
+        }
+
+        else if (updateButton.IsHovered(mousePosition)){
+            inputActive = true;
+            inputType = 4;
+            updateUTextBox.createRandomValue(1, 999);
+            updateVTextBox.createRandomValue(1, 999);
         }
 
         // Check if the delete button is clicked
         else if (deleteButton.IsHovered(mousePosition)) {
             inputActive = true;
-            inputType = 4; // Set input type to delete
-            inputBuffer[0] = Rand(0, 9) + '0'; inputBuffer[1] = Rand(0, 9) + '0';
-            if(inputBuffer[0] == '0') inputBuffer[0] = inputBuffer[1], inputBuffer[1] = '\0';
-            else inputBuffer[2] = '\0';
+            inputType = 5;
+            deleteTextBox.createRandomValue(1, 999);
         }
 
         //Check if the file button is clicked
@@ -451,103 +541,45 @@ void HashTable::handleEvents(){
         }
 
         else if (clearButton.IsHovered(mousePosition)) {
-            clear(); // Clear the hash table
+            clear();
         }
-        
-        // If no button is clicked, deactivate input
-        // int offsetX = 27, offsetY = 120 + 600 - 6*buttonHeight - 5 * 5;
-        // if (inputActive && preInputType == inputType) {
-        //     inputActive = false; // Deactivate input if no button is clicked
-        //     inputType = 0; // Reset input type
-        // }
     }
-    
-    // Handle keyboard input
-    if (inputActive) {
-        if(inputType == 1){
-            if(isGetInputCapacity){
-                int key = GetCharPressed(); // Get the pressed key
-                while (key > 0) {
-                    if (key >= 48 && key <= 57) { // Check if the key is a valid character
-                        int len = strlen(inputCapacityBuffer);
-                        if(len == 2) break;
-                        inputCapacityBuffer[len] = (char)key;
-                        inputCapacityBuffer[len + 1] = '\0'; // Append the character to the input buffer
-                    }
-                    key = GetCharPressed(); // Get the next pressed key
-                }
-                if (IsKeyPressed(KEY_BACKSPACE)) { // Handle backspace key
-                    int len = strlen(inputCapacityBuffer); // Get the length of the input buffer
-                    if (len > 0) inputCapacityBuffer[len - 1] = '\0'; // Remove the last character from the input buffer
-                }
-            }
-            else if(isGetInputSize){
-                int key = GetCharPressed(); 
-                while (key > 0) {
-                    if (key >= 48 && key <= 57) { // Check if the key is a valid character
-                        int len = strlen(inputSizeBuffer);
-                        if(len == 2) break;
-                        inputSizeBuffer[len] = (char)key;
-                        inputSizeBuffer[len + 1] = '\0'; // Append the character to the input buffer
-                    }
-                    key = GetCharPressed(); // Get the next pressed key
-                }
-                if (IsKeyPressed(KEY_BACKSPACE)) { // Handle backspace key
-                    int len = strlen(inputSizeBuffer); // Get the length of the input buffer
-                    if (len > 0) inputSizeBuffer[len - 1] = '\0'; // Remove the last character from the input buffer
-                }
-            }
-            if (IsKeyPressed(KEY_ENTER)) {
-                int newCapacity = std::atoi(inputCapacityBuffer); 
-                int newSize;
-                if(inputSizeBuffer[0] == '\0') newSize = Rand(0, newCapacity/2); // If size is not set, set it to 0
-                else newSize = std::atoi(inputSizeBuffer); 
-                createRandomTable(newCapacity, newSize);
-                isGetInputCapacity = false; 
-                inputActive = false;
-                inputType = 0;
-            }
-        }
-        else{
-            int value = 0;
-            int key = GetCharPressed(); // Get the pressed key
-            while (key > 0) {
-                if (key >= 48 && key <= 57) { // Check if the key is a valid character
-                    int len = strlen(inputBuffer);
-                    if(len >= 5) break;
-                    inputBuffer[len] = (char)key;
-                    inputBuffer[len + 1] = '\0'; // Append the character to the input buffer
-                }
-                key = GetCharPressed(); // Get the next pressed key
-            }
 
-            if(IsKeyPressed(KEY_BACKSPACE)) { // Handle backspace key
-                int len = strlen(inputBuffer); // Get the length of the input buffer
-                if (len > 0) inputBuffer[len - 1] = '\0'; // Remove the last character from the input buffer
+    if(inputActive){
+        if(IsKeyPressed(KEY_ENTER)){
+            if(inputType == 1){
+                createNTextBox.Update();
+                createKTextBox.Update();
+                createRandomTable(createNTextBox.GetIntValue(), createKTextBox.GetIntValue());
             }
-
-            // Handle Enter key for different input types
-            if (IsKeyPressed(KEY_ENTER)) {
-                value = std::atoi(inputBuffer); // Convert the input buffer to an integer
-                // std::cerr << inputBuffer << ' ' << value << '\n';
-                switch (inputType) {
-                    case 2: search(value); break; // Search for a value by key
-                    case 3: insert(value); break; // Insert a new key-value pair
-                    case 4: remove(value); break; // Delete a key-value pair
-                }
-                inputActive = false; // Deactivate input after processing
-                inputType = 0; // Reset input type
+            else if(inputType == 2){
+                searchTextBox.Update();
+                search(searchTextBox.GetIntValue());
             }
+            else if(inputType == 3){
+                addTextBox.Update();
+                insert(addTextBox.GetIntValue());
+            }
+            else if(inputType == 4){
+                updateUTextBox.Update();
+                updateVTextBox.Update();
+                update(updateUTextBox.GetIntValue(), updateVTextBox.GetIntValue());
+            }
+            else if(inputType == 5){
+                deleteTextBox.Update();
+                remove(deleteTextBox.GetIntValue());
+            }
+            inputActive = false; // Deactivate input after processing
+            inputType = 0; // Reset input type
         }
     }
 }
 
 void HashTable::drawButtons() {
-    // DrawRectangle(0, 155, 350, 600, LIGHTGRAY); // Draw button background
-    // DrawLine(175, 155, 175, 155 + 600, DARKGRAY); // Draw line between menu and button
     updatePseudocodeOn();
     addButton.Update();
     searchButton.Update();
+    updateButton.Update();
     deleteButton.Update();
     createButton.Update();
     fileButton.Update();
@@ -555,17 +587,39 @@ void HashTable::drawButtons() {
 
     addButton.Draw();
     searchButton.Draw();
+    updateButton.Draw();
     deleteButton.Draw();
     createButton.Draw();
     fileButton.Draw();
     clearButton.Draw();
+    
 
-
-    // Draw the input buffer if input is active
-    // if (inputActive) {
-    //     DrawRectangle(50, 720 - 4*30 - 5, 120, 30, LIGHTGRAY); // Draw input box
-    //     DrawText(inputBuffer, 55, 720 - 4*30 - 5 + 5, 20, BLACK); // Draw input text
-    // }
+    if(inputActive){
+        if(inputType == 1){
+            createNTextBox.Update();
+            createKTextBox.Update();
+            createNTextBox.Draw();
+            createKTextBox.Draw();
+        }
+        else if(inputType == 2){
+            searchTextBox.Update();
+            searchTextBox.Draw();
+        }
+        else if(inputType == 3){
+            addTextBox.Update();
+            addTextBox.Draw();
+        }
+        else if(inputType == 4){
+            updateUTextBox.Update();
+            updateVTextBox.Update();
+            updateUTextBox.Draw();
+            updateVTextBox.Draw();
+        }
+        else if(inputType == 5){
+            deleteTextBox.Update();
+            deleteTextBox.Draw();
+        }
+    }
 
     DrawRectangleRec(togglePseudocodeButton, GREEN);
     if (isPseudocodeVisible) {
@@ -574,69 +628,6 @@ void HashTable::drawButtons() {
     } else {
         // DrawRectangleLinesEx(togglePseudocodeButton, 2, BLACK);
         DrawTextEx(customFont, "<", { togglePseudocodeButton.x + (togglePseudocodeButton.width - MeasureText("<", 20)) / 2, togglePseudocodeButton.y + (togglePseudocodeButton.height - 20) / 2 }, 20, 2, WHITE);
-    }
-
-    if (inputActive) {
-        if(inputType == 1){ // Create
-            if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-                if (CheckCollisionPointRec(GetMousePosition(), {createButton.bounds.x + createButton.bounds.width + 10, createButton.bounds.y, 120, createButton.bounds.height})){
-                    isGetInputCapacity = true;
-                    isGetInputSize = false;
-                }
-                else if (CheckCollisionPointRec(GetMousePosition(), sizeInputBox)){
-                    isGetInputCapacity = false;
-                    isGetInputSize = true;
-                }
-            } 
-            // get value for capacity
-            DrawRectangle(createButton.bounds.x + createButton.bounds.width + 10, createButton.bounds.y, 120, createButton.bounds.height, PINK); // Draw input box
-            DrawText("N = ", createButton.bounds.x + createButton.bounds.width + 15, createButton.bounds.y + 5, 20, BLACK); // Draw input text
-            DrawText(inputCapacityBuffer, createButton.bounds.x + createButton.bounds.width + 55, createButton.bounds.y + 5, 20, BLACK); // Draw input text
-            if (isGetInputCapacity && static_cast<int>(GetTime() * 2) % 2 == 0){
-                DrawText("|", createButton.bounds.x + createButton.bounds.width + 55 + MeasureText(inputCapacityBuffer, 20), createButton.bounds.y + 5, 20, BLACK); // Draw cursor
-            }            
-            // get value for size
-            DrawRectangleRec(sizeInputBox, PINK); 
-            DrawText("K = ", sizeInputBox.x + 15, sizeInputBox.y + 5, 20, BLACK);
-            DrawText(inputSizeBuffer, sizeInputBox.x + 55, sizeInputBox.y + 5, 20, BLACK); // Draw input text
-            if(isGetInputSize && static_cast<int>(GetTime() * 2) % 2 == 0){
-                DrawText("|", sizeInputBox.x + 55 + MeasureText(inputSizeBuffer, 20), sizeInputBox.y + 5, 20, BLACK); // Draw cursor
-            }
-        }
-        else if (inputType == 2){ // Search
-            DrawRectangle(searchButton.bounds.x + searchButton.bounds.width + 10, searchButton.bounds.y, 120, searchButton.bounds.height, PINK); // Draw input box
-            DrawText("V = ", searchButton.bounds.x + searchButton.bounds.width + 15, searchButton.bounds.y + 5, 20, BLACK); // Draw input text
-            DrawText(inputBuffer, searchButton.bounds.x + searchButton.bounds.width + 55, searchButton.bounds.y + 5, 20, BLACK); // Draw input text
-            if(static_cast<int>(GetTime() * 2) % 2 == 0){
-                DrawText("|", searchButton.bounds.x + searchButton.bounds.width + 55 + MeasureText(inputBuffer, 20), searchButton.bounds.y + 5, 20, BLACK); // Draw cursor
-            }
-        }
-        else if (inputType == 3){ // Insert
-            DrawRectangle(addButton.bounds.x + addButton.bounds.width + 10, addButton.bounds.y, 120, addButton.bounds.height, PINK); // Draw input box
-            DrawText("V = ", addButton.bounds.x + addButton.bounds.width + 15, addButton.bounds.y + 5, 20, BLACK); // Draw input text
-            DrawText(inputBuffer, addButton.bounds.x + addButton.bounds.width + 55, addButton.bounds.y + 5, 20, BLACK); // Draw input text
-            if(static_cast<int>(GetTime() * 2) % 2 == 0){
-                DrawText("|", addButton.bounds.x + addButton.bounds.width + 55 + MeasureText(inputBuffer, 20), addButton.bounds.y + 5, 20, BLACK); // Draw cursor
-            }
-        }
-        else if (inputType == 4){ // Delete
-            DrawRectangle(deleteButton.bounds.x + deleteButton.bounds.width + 10, deleteButton.bounds.y, 120, deleteButton.bounds.height, PINK); // Draw input box
-            DrawText("V = ", deleteButton.bounds.x + deleteButton.bounds.width + 15, deleteButton.bounds.y + 5, 20, BLACK); // Draw input text
-            DrawText(inputBuffer, deleteButton.bounds.x + deleteButton.bounds.width + 55, deleteButton.bounds.y + 5, 20, BLACK); // Draw input text
-            if(static_cast<int>(GetTime() * 2) % 2 == 0){
-                DrawText("|", deleteButton.bounds.x + deleteButton.bounds.width + 55 + MeasureText(inputBuffer, 20), deleteButton.bounds.y + 5, 20, BLACK); // Draw cursor
-            }
-        }
-
-        // DrawRectangle(175, 720 - 4*30 - 5, 120, 30, PINK); // Draw input box
-        // DrawRectangleLines(175, 720 - 4*30 - 5, 120, 30, BLACK); // Draw input box border        
-        // DrawText(inputBuffer, 180, 720 - 4*30 - 5 + 5, 20, BLACK); // Draw input text
-        // DrawTextEx(customFont, inputBuffer, { 180, 720 - 4*30 - 5 + 5 }, 20, 2, BLACK); // Draw input text with custom font
-        
-        // Sử dụng GetTime() để nhấp nháy con trỏ
-        // if (static_cast<int>(GetTime() * 2) % 2 == 0) {
-        //     DrawText("|" , 180 + MeasureText(inputBuffer, 20), 720 - 4*30 - 5 + 5, 20, BLACK); // Draw cursor
-        // }
     }
 }
 
