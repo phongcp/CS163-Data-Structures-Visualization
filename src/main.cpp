@@ -11,7 +11,7 @@ int main() {
 
     init();
     // current_state = MENU;
-    current_state = AVLTREE;
+    current_state = TRIE;
 
     while (!WindowShouldClose()) {
         BeginDrawing();

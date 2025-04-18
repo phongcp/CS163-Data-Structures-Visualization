@@ -39,8 +39,13 @@ void AVLTree::init(){
     
 
     animationState = PAUSE;
+    timeAnimation = 0.0f;
+    curAnimation = 0;
+    Animation.clear();
+
 
     inputActive = false;
+    inputType = 0;
 
     
     resetTree(MAX_NODES);
@@ -161,6 +166,9 @@ Vector2 AVLTree::newPosVector2(Vector2 A, Vector2 B, float opacity){
 
 
 void AVLTree::drawAnimation(SnapShot curShot, float opacity){
+    if(isPseudocodeVisible){
+        drawPseudocode(curShot.code, curShot.codeLine1, curShot.codeLine2); // Draw the pseudocode
+    }
     for(int i = 0; i < curShot.nodes.size(); ++i){
         NodeTree &u = curShot.nodes[i];
         if(!u.isUsed) continue;
@@ -185,9 +193,6 @@ void AVLTree::drawAnimation(SnapShot curShot, float opacity){
             else if(v.isUpdate) DrawConnection(u.node.position, v.node.position, false, edgeColor, 4.0f, u.node.radius, v.node.radius);
             else DrawConnection(u.node.position, v.node.position, false, edgeColor, 4.0f, u.node.radius, v.node.radius);
         }
-    }
-    if(isPseudocodeVisible){
-        drawPseudocode(curShot.code, curShot.codeLine1, curShot.codeLine2); // Draw the pseudocode
     }
 }
 
@@ -242,7 +247,7 @@ void AVLTree::initializeAVLTree(int n){
         animationState = PLAY;
         root = insertNode(root, value, 0, -1);
         generatePosition(root, root, 150, screenWidth - 30, 100, 100);
-        Animation.push_back(SnapShot(nodes, root, insertValueCode, 0, 0));
+        Animation.push_back(SnapShot(nodes, root, insertValueCode, 6, 6));
     }
     std::cout << '\n';
 }
@@ -483,3 +488,38 @@ AVLTree::~AVLTree() {
     // Destructor implementation
     // Clean up resources if needed
 }
+
+
+// // Pseudocode for hash function
+// const char* insertCode[8] = {
+//     "node = root\n",
+//     "for(char ch : word)\n"
+//     "    if node.child[ch] == NULL\n",
+//     "        node.child[ch] = new TrieNode(ch)\n",
+//     "    node = node.child[ch]\n",
+//     "node.isEndOfWord = true\n",
+//     "",
+//     ""
+// };
+
+// const char* searchCode[8] = {
+//     "node = root\n",
+//     "for(char ch : word)\n",
+//     "    if node.child[ch] == NULL\n",
+//     "        return NOT_FOUND\n",
+//     "    cur.numberChild++\n",
+//     "    cur = cur.child[ch]\n",
+//     "if cur.isEndOfWord return FOUND\n",
+//     "return NOT_FOUND\n",
+// };
+
+// const char* deleteCode[8] = {
+//     "if (search(word) == NOT_FOUND) return NOT_FOUND\n",
+//     "node = endOfWordNode(word)\n"
+//     "for(char ch : rev(word))\n",
+//     "    node.numChild--\n"
+//     "    node = node.parent\n",
+//     "    if node.child[ch].numChild == 0\n",
+//     "        delete node.child[ch]\n",
+//     "return FOUND\n"
+// };

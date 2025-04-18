@@ -9,13 +9,22 @@ Trie::Trie(){
 
 void Trie::init(){
     int buttonWidth = 120, buttonHeight = 30;
-    int offsetX = 27, offsetY = 120 + 600 - 6*buttonHeight - 5 * 5;
-    createButton  = ButtonText(offsetX, offsetY, buttonWidth, buttonHeight, "Create Random");
+    int offsetX = 15, offsetY = 120 + 600 - 7*buttonHeight - 6 * 5;
+    createButton  = ButtonText(offsetX, offsetY, buttonWidth, buttonHeight, "Create");
     searchButton = ButtonText(offsetX, offsetY + buttonHeight + 5, buttonWidth, buttonHeight, "Search");
     addButton = ButtonText(offsetX, offsetY + 2*buttonHeight + 10, buttonWidth, buttonHeight, "Insert");    
     deleteButton = ButtonText(offsetX, offsetY + 3*buttonHeight + 15, buttonWidth, buttonHeight, "Delete");
-    fileButton = ButtonText(offsetX, offsetY + 4*buttonHeight + 20, buttonWidth, buttonHeight, "File");
-    clearButton = ButtonText(offsetX, offsetY + 5*buttonHeight + 25, buttonWidth, buttonHeight, "Clear");
+    updateButton = ButtonText(offsetX, offsetY + 4*buttonHeight + 20, buttonWidth, buttonHeight, "Update");
+    fileButton = ButtonText(offsetX, offsetY + 5*buttonHeight + 25, buttonWidth, buttonHeight, "File");
+    clearButton = ButtonText(offsetX, offsetY + 6*buttonHeight + 30, buttonWidth, buttonHeight, "Clear");
+
+    createTextBox = InputTextBox({createButton.bounds.x + createButton.bounds.width + 10, createButton.bounds.y, 150, createButton.bounds.height}, "N = ", 2, 20, BLACK, BLACK, LIGHTGRAY);
+    searchTextBox = InputTextBox({searchButton.bounds.x + searchButton.bounds.width + 10, searchButton.bounds.y, 150, searchButton.bounds.height}, "S = ", 7, 20, BLACK, BLACK, LIGHTGRAY);
+    addTextBox = InputTextBox({addButton.bounds.x + addButton.bounds.width + 10, addButton.bounds.y, 150, addButton.bounds.height}, "S = ", 7, 20, BLACK, BLACK, LIGHTGRAY);
+    deleteTextBox = InputTextBox({deleteButton.bounds.x + deleteButton.bounds.width + 10, deleteButton.bounds.y, 150, deleteButton.bounds.height}, "S = ", 7, 20, BLACK, BLACK, LIGHTGRAY);
+    updateUTextBox = InputTextBox({updateButton.bounds.x + updateButton.bounds.width + 10, updateButton.bounds.y, 150, updateButton.bounds.height}, "U = ", 7, 20, BLACK, BLACK, LIGHTGRAY);
+    updateVTextBox = InputTextBox({updateButton.bounds.x + updateButton.bounds.width + 10 + 125, updateButton.bounds.y, 150, updateButton.bounds.height}, "V = ", 7, 20, BLACK, BLACK, LIGHTGRAY);
+
 
     remote.resize(7);
     remote[0] = {{350,747},{49,52},(Texture2D)LoadTexture("../assets/in_app/pre.png"),RAYWHITE,1};    
@@ -25,7 +34,9 @@ void Trie::init(){
     remote[4] = {{remote[3].Postion.x + 69,747},{49,52},(Texture2D)LoadTexture("../assets/in_app/suff.png"),RAYWHITE,1};
     remote[5] = {{remote[1].Postion.x + 69,751},{44,50},(Texture2D)LoadTexture("../assets/in_app/pause.png"),RAYWHITE,1};
     remote[6] = {{remote[1].Postion.x + 69,751},{44,50},(Texture2D)LoadTexture("../assets/in_app/repeat.png"),RAYWHITE,1};
-    
+
+    resetTrie(MAX_NODES);
+
     animationState = PAUSE;
     timeAnimation = 0.0f;
     curAnimation = 0;
@@ -37,8 +48,6 @@ void Trie::init(){
     lineCount = 8;
     isPseudocodeVisible = false;
     togglePseudocodeButton = { (float)screenWidth-20, 490, 20, (float)lineCount * 30};
-
-    root = nullptr;
 }
 
 void Trie::updatePseudocodeOn() {
@@ -50,8 +59,32 @@ void Trie::updatePseudocodeOn() {
     }
 }
 
-void Trie::drawPseudocode() {
+void Trie::drawPseudocode(const char** pseudocode, int codeLine1, int codeLine2, int codeLine3) {
+    float startX = (float)screenWidth - 450 - 5 - 30;
+    float startY = 490;
 
+    float boxWidth = 470;
+    float boxHeight = 30;
+
+    Rectangle pseudocodeBox = { 
+        startX, 
+        startY, 
+        boxWidth, 
+        boxHeight * (float)lineCount 
+    };
+    DrawRectangleRec(pseudocodeBox, LIGHTGRAY);
+    if(pseudocode == nullptr) return;
+
+    for(int i = 0; i < lineCount; ++i){
+        float newX = startX;
+        float newY = startY + i * boxHeight;
+        Rectangle textBox = {newX, newY + 5, boxWidth, boxHeight - 9};
+        Color backgroundColor = (i == codeLine1 || i == codeLine2 || i == codeLine3) ? GREEN : LIGHTGRAY;
+        DrawRectangleRec(textBox, backgroundColor);
+
+        Color textColor = (i == codeLine1 || i == codeLine2 || i == codeLine3) ? WHITE : BLACK;
+        DrawTextEx(fontPseudocode, pseudocode[i], { newX + 5, newY + 5 }, 20, 2, textColor);
+    }
 }
 
 void Trie::handleRemote(){
@@ -118,30 +151,37 @@ void Trie::handleRemote(){
     else if (animationState == REPLAY) remote[6].DrawBasic(0.6);
 }
 
-float Trie::generatePosition(TrieNode* u, float t, float f, float h, float delh, float r) {
-    if (u == nullptr) return t;
+float Trie::generatePosition(int u, float t, float f, float h, float delh, float r, int isSavePos) {
+    if(u == -1) return false;
 
     float g = t;
     float mid = -1;
-    float totalChildPos = 0; // Tổng vị trí của các nút con
-    int childCount = 0;      // Số lượng nút con
-
-    for (TrieNode* v : u->children) {
-        if (v == nullptr) continue;
-        g = generatePosition(v, g, f, h + delh, delh, r);
-        totalChildPos += v->node->position.x; // Cộng dồn vị trí x của các nút con
+    float totalChildPos = 0;
+    int childCount = 0;
+    for(int i = 0; i < 26; ++i){
+        int v = nodes[u].child[i];
+        if(v == -1) continue;
+        g = generatePosition(v, g, f, h + delh, delh, r, isSavePos);
+        totalChildPos += nodes[v].node.position.x; // Cộng dồn vị trí x của các nút con
         childCount++;
     }
 
-    // Nếu có nút con, tính vị trí trung bình
-    if (childCount > 0) {
+    if(childCount > 0){
         mid = totalChildPos / childCount;
     } else {
-        mid = (std::max(g - f - 2 * r, t) + t) / 2.0f; // Nếu không có nút con, tính như cũ
+        // mid = (std::max(g - f - 2 * r, t) + t) / 2.0f; // Nếu không có nút con, tính như cũ
+        // mid = g + f + r;
+        mid = t;
     }
 
-    u->node->position = {mid, h};
-    u->node->radius = r;
+    if(u == 0) h -= 70;
+    if(isSavePos == 1){
+        nodes[u].oldPosition = nodes[u].newPosition;
+        nodes[u].newPosition = {mid, h};
+    }
+    
+    nodes[u].node.position = {mid, h};
+    nodes[u].node.radius = r;
 
     return std::max(g, mid + 3 * r);
 }
@@ -149,112 +189,179 @@ float Trie::generatePosition(TrieNode* u, float t, float f, float h, float delh,
 void Trie::adjustPosition(){
     float r = radius;
     float dis = 30;
-    float k = screenWidth;
+    // float k = screenWidth;
+    float k = 0;
     for(int i = r; i >= 5; --i){
         dis -= 3;
         r -= 0.5;
-        k = screenWidth - (generatePosition(root, 0, dis, 150, 70, r) - dis - 2*r);
+        k = screenWidth - (generatePosition(0, 0, dis, 170, 70, r, 0) - 3*r);
         if(k > 30) break;
     }
-    generatePosition(root, k/2.0f, dis, 150, 70, r);
+    generatePosition(0, k/2.0f, dis, 170, 70, r, 1);
+    nodes[0].oldPosition = nodes[0].newPosition;
+    // generatePosition(0, k/2.0f, dis, 120, 70, r, 1);
 }
 
-void Trie::drawTrie(TrieNode* u){
-    if(u == nullptr) return;
-    u->node->draw();
-    for(int i = 0; i < 26; ++i){
-        if(u->children[i] != nullptr){
-            DrawConnection(u->node->position, u->children[i]->node->position, true, BLACK, 4.0f, u->node->radius, u->children[i]->node->radius);
-            drawTrie(u->children[i]);
+Vector2 Trie::newPosVector2(Vector2 A, Vector2 B, float opacity){
+    return {A.x + (B.x - A.x) * opacity, A.y + (B.y - A.y) * opacity};
+}
+
+void Trie::drawAnimation(SnapShot curShot, float opacity){
+    if(isPseudocodeVisible){
+        drawPseudocode(curShot.code, curShot.codeLine1, curShot.codeLine2, curShot.codeLine3); // Draw the pseudocode
+    }
+    if(!isLightMode){
+        nodeColor = ((1) ? Color({200, 200, 200, 255}) : Color({220, 220, 220, 255}));
+        nodeHighlightColor = ((1) ? Color({255, 191, 73, 255}) : Color({255, 184, 108, 255}));
+        nodeDeleteColor = ((1) ? Color({255, 99, 99, 255}) : Color({255, 80, 80, 255}));
+        nodeExistColor = ((1) ? Color({144, 238, 144, 255}) : Color({102, 255, 102, 255}));   
+    }
+    else{
+        nodeColor = BLACK;
+        nodeHighlightColor = ORANGE;
+        nodeDeleteColor = RED;
+        nodeExistColor = GREEN;
+    }
+
+    for(int i = 0; i < curShot.nodes.size(); ++i){
+        TrieNode &u = curShot.nodes[i];
+        if(i != 0){
+            if(curShot.isInsertState && nodes[i].cnt == 0) continue;
+            if(!curShot.isInsertState && curShot.nodes[i].cnt == 0) continue;
         }
+        if(animationState == PAUSE) u.node.position = u.newPosition;
+        else u.node.position = newPosVector2(u.oldPosition, u.newPosition, opacity);
+        switch (u.typeColor) {
+            case 0: u.node.color = nodeColor; break; // Default color
+            case 1: u.node.color = nodeHighlightColor; break; // Highlight color
+            case 2: u.node.color = nodeDeleteColor; break; // Delete color
+            case 3: u.node.color = nodeExistColor; break; // Exist color
+            default: u.node.color = BLACK; break; // Default color
+        }
+        u.node.draw(1.0f);
+    }
+    for(int i = 0; i < curShot.nodes.size(); ++i){
+        TrieNode &u = curShot.nodes[i];
+        for(int j = 0; j < 26; ++j){
+            if(u.child[j] == -1) continue;
+            TrieNode &v = curShot.nodes[u.child[j]];
+            if(u.typeColor == v.typeColor) DrawConnection(u.node.position, v.node.position, true, u.node.color, 4.0f, u.node.radius, v.node.radius);
+            else DrawConnection(u.node.position, v.node.position, true, nodeColor, 4.0f, u.node.radius, v.node.radius);
+        }
+    }
+}
+
+void Trie::drawTrie(int u){
+    if(u == -1) return;
+    nodes[u].node.draw();
+    for(int i = 0; i < 26; ++i){
+        int v = nodes[u].child[i];
+        if(v == -1) continue;
+        DrawConnection(nodes[u].node.position, nodes[v].node.position, true, BLACK, 4.0f, nodes[u].node.radius, nodes[v].node.radius);
+        drawTrie(v);
     }
 }
 
 void Trie::draw(){
     handleRemote();
+    // drawTrie(0);
+    if(Animation.size() > 0){
+        if (animationState != PAUSE) timeAnimation += GetFrameTime(); // Update the animation time
+        if(timeAnimation > deltaTime && animationState != PAUSE){
+            if(curAnimation + 1 < Animation.size()){
+                curAnimation++; // Move to the next animation frame
+                timeAnimation = 0; // Reset the animation time
+            }
+            else{
+                timeAnimation = deltaTime; // Reset the animation time
+                animationState = REPLAY;
+            }
+        }
 
-    drawTrie(root);
+        float opacity = std::min((double)1.0, timeAnimation / deltaTime); // Calculate the scale for the animation
+        drawAnimation(Animation[curAnimation], opacity); // Draw the current animation frame
+    }
+    else{
+        if(isPseudocodeVisible){
+            drawPseudocode(nullptr, -1, -1, -1); // Draw the pseudocode
+        }
+    }
 
     drawButtons();
 }
 
-void Trie::createRandomTrie(){
+void Trie::createRandomTrie(int n){
     clear();
+    for(int i = 0; i < n; ++i) {
+        int len = GetRandomValue(1, 7);
+        std::string s = "";
+        for(int j = 0; j < len; ++j){
+            s += (char)(GetRandomValue(0, 25) + 'A');
+        }
+        listStr.push_back(s);
+        addString(s);
+        adjustPosition();
+    }
 }
 
 void Trie::insert(std::string word){
     if(word.empty()) return;
-    // std::cerr << word << ' ' << '\n';
-    if(root == nullptr){
-        root = new TrieNode();
-        root->node = new Node("", {130 + 645, 120}, BLACK, radius, customFont, 20.0f);
-    }
-    TrieNode* cur = root;
-    for(char ch : word){
-        int index = ch - 'A';
-        if(cur->children[index] == nullptr){
-            cur->children[index] = new TrieNode();
-            cur->children[index]->node = new Node(std::string(1, ch), {0, 0}, BLACK, radius, customFont, 20.0f);
-            cur->children[index]->parent = cur;
-        }
-        cur = cur->children[index];
-    }
-    cur->isEndOfWord = true;
+    Animation.clear();
+    curAnimation = 0; // Reset the current animation index
+    timeAnimation = 0.0f; // Reset the current time    
+    animationState = PLAY;
     listStr.push_back(word);
+    addString(word);    
     adjustPosition();
 }
 
 void Trie::search(std::string word){
     if(word.empty()) return;
-    // std::cerr << word << ' ' << '\n';
-    if(root == nullptr) return;
-    TrieNode* cur = root;
-    for(char ch : word){
-        int index = ch - 'A';
-        if(cur->children[index] == nullptr) return;
-        cur = cur->children[index];
-    }
-    if(cur->isEndOfWord) {
-        std::cerr << "Found: " << word << '\n';
-    } else {
-        std::cerr << "Not Found: " << word << '\n';
-    }
+    Animation.clear();
+    curAnimation = 0; 
+    timeAnimation = 0.0f;
+    animationState = PLAY;
+    searchString(word);
 }
 
 void Trie::remove(std::string word){
     if(word.empty()) return;
-    // std::cerr << word << ' ' << '\n';
-    if(root == nullptr) return;
-    TrieNode* cur = root;
-    for(char ch : word){
-        int index = ch - 'A';
-        if(cur->children[index] == nullptr) return;
-        cur = cur->children[index];
-    }
-    if(cur->isEndOfWord) {
-        cur->isEndOfWord = false;
-        listStr.erase(std::remove(listStr.begin(), listStr.end(), word), listStr.end());
-        adjustPosition();
-    } else {
-        std::cerr << "Not Found: " << word << '\n';
-    }
+    listStr.erase(std::remove(listStr.begin(), listStr.end(), word), listStr.end());
+    Animation.clear();
+    curAnimation = 0; 
+    timeAnimation = 0.0f;
+    animationState = PLAY;
+    deleteString(word);
+    adjustPosition();
 }
 
-void Trie::deleteNode(TrieNode* node){
-    if (node == nullptr) return;
-    for(int i = 0; i < 26; ++i){
-        if(node->children[i] != nullptr) deleteNode(node->children[i]);
+void Trie::update(std::string wordU, std::string wordV){
+    Animation.clear();
+    curAnimation = 0; 
+    timeAnimation = 0.0f;
+    animationState = PLAY;
+    if(!wordU.empty()){
+        listStr.erase(std::remove(listStr.begin(), listStr.end(), wordU), listStr.end());
+        deleteString(wordU);
+        adjustPosition();
+        Animation.push_back(SnapShot(nodes, deleteCode, -1, -1, -1));
+        adjustPosition();
     }
-    // delete node->parent;
-    delete node->node;
-    delete node;         
+    if(!wordV.empty()){
+        listStr.push_back(wordV);
+        addString(wordV);
+        adjustPosition();
+    }
 }
 
 void Trie::clear(){
+    Animation.clear();
+    curAnimation = 0; // Reset the current animation index
+    timeAnimation = 0.0f; // Reset the current time    
+    animationState = PLAY;
     listStr.clear();
-    deleteNode(root);
-    root = nullptr;
-    if(root == nullptr) std::cerr << "YES\n";
+    resetTrie(MAX_NODES);
+    adjustPosition();
 }
 
 void Trie::loadFile(){
@@ -273,13 +380,18 @@ void Trie::loadFile(){
     }
 
     clear();
-}
 
-void Trie::createRandomString(int len) {
-    for(int i = 0; i < len; ++i){
-        inputBuffer[i] = (char)(Rand(0, 25) + 'A'); // Generate a random uppercase letter
+    int n;
+    fscanf(file, "%d", &n);
+    for(int i = 0; i < n; ++i){
+        char str[100];
+        fscanf(file, "%s", str); // Read the strings from the file
+        std::string s = str;
+        listStr.push_back(s);
+        addString(s);
+        adjustPosition();
     }
-    inputBuffer[len] = '\0'; // Null-terminate the string
+    fclose(file);
 }
 
 void Trie::handleEvents(){
@@ -289,28 +401,37 @@ void Trie::handleEvents(){
         // Check if the create button is clicked
         if (createButton.IsHovered(mousePosition)) {
             inputActive = true;
-            inputType = 1; // Set input type to create
+            inputType = 1;
+            createTextBox.createRandomValue(1, 10);
         }
         else if (searchButton.IsHovered(mousePosition)) {
             inputActive = true;
             inputType = 2; // Set input type to search
-            createRandomString(Rand(3, 7));
+            if(!listStr.empty()) searchTextBox.SetText(listStr[GetRandomValue(0, listStr.size() - 1)]);
+            else searchTextBox.createRandomString(GetRandomValue(1, 7));
         }
 
         // Check if the insert button is clicked
         else if (addButton.IsHovered(mousePosition)) {
             inputActive = true;
             inputType = 3; // Set input type to insert
-            createRandomString(Rand(3, 7));
-
+            addTextBox.createRandomString(GetRandomValue(1, 7));
         }
 
         // Check if the delete button is clicked
         else if (deleteButton.IsHovered(mousePosition)) {
             inputActive = true;
             inputType = 4; // Set input type to delete
-            if(!listStr.empty()) strcpy(inputBuffer, listStr[Rand(0, listStr.size()-1)].c_str()); // Randomly select a string from the list
-            else createRandomString(Rand(3, 7)); // If the list is empty, generate a random string
+            if(!listStr.empty()) deleteTextBox.SetText(listStr[GetRandomValue(0, listStr.size() - 1)]);
+            else deleteTextBox.createRandomString(GetRandomValue(1, 7));
+        }
+
+        else if (updateButton.IsHovered(mousePosition)){
+            inputActive = true;
+            inputType = 5;
+            if(!listStr.empty()) updateUTextBox.SetText(listStr[GetRandomValue(0, listStr.size() - 1)]);
+            else updateUTextBox.createRandomString(GetRandomValue(1, 7));
+            updateVTextBox.createRandomString(GetRandomValue(1, 7));
         }
 
         //Check if the file button is clicked
@@ -321,44 +442,38 @@ void Trie::handleEvents(){
         else if (clearButton.IsHovered(mousePosition)) {
             clear(); // Clear the hash table
         }
-        
-        // If no button is clicked, deactivate input
-        else if (inputActive) {
-            inputActive = false; // Deactivate input if no button is clicked
-            inputType = 0; // Reset input type
-        }
     }
-    
-    // Handle keyboard input
-    if (inputActive) {
-        int key = GetCharPressed(); 
-        while (key > 0) {
-            // Check if the key is a valid character from 'a' to 'z' or 'A' to 'Z'
-            if (((int)('A') <= key && key <= (int)('Z')) || ((int)('a') <= key && key <= (int)('z'))) {
-                int len = strlen(inputBuffer);
-                if(len >= 20) break;
-                if((int)('a') <= key && key <= (int)('z')) key -= 32; // Convert lowercase to uppercase
-                inputBuffer[len] = (char)key;
-                inputBuffer[len + 1] = '\0';
-            }
-            key = GetCharPressed();
-        }
 
-        if(IsKeyPressed(KEY_BACKSPACE)) { 
-            int len = strlen(inputBuffer);
-            if (len > 0) inputBuffer[len - 1] = '\0';
-        }
-
-        if (IsKeyPressed(KEY_ENTER)) {
-            // std::cerr << inputBuffer << ' ' << value << '\n';
-            switch (inputType) {
-                case 1: createRandomTrie(); break;
-                case 2: search(inputBuffer); break; 
-                case 3: insert(inputBuffer); break;
-                case 4: remove(inputBuffer); break; 
+    if(inputActive){
+        if(IsKeyPressed(KEY_ENTER)){
+            if(inputType == 1){
+                createTextBox.Update();                
+                createRandomTrie(createTextBox.GetIntValue());
             }
-            inputActive = false; 
-            inputType = 0;
+            else if(inputType == 2){
+                searchTextBox.Update();
+                searchTextBox.reGenerateString();
+                search(searchTextBox.GetText());
+            }
+            else if(inputType == 3){
+                addTextBox.Update();
+                addTextBox.reGenerateString();
+                insert(addTextBox.GetText());
+            }
+            else if(inputType == 4){
+                deleteTextBox.Update();
+                deleteTextBox.reGenerateString();
+                remove(deleteTextBox.GetText()); // Update to use GetText for deletion
+            }
+            else if(inputType == 5){
+                updateUTextBox.Update();
+                updateVTextBox.Update();
+                updateUTextBox.reGenerateString();
+                updateVTextBox.reGenerateString();
+                update(updateUTextBox.GetText(), updateVTextBox.GetText()); 
+            }
+            inputActive = false; // Deactivate input after processing
+            inputType = 0; // Reset input type
         }
     }
 }
@@ -368,6 +483,7 @@ void Trie::drawButtons(){
     addButton.Update();
     searchButton.Update();
     deleteButton.Update();
+    updateButton.Update();
     createButton.Update();
     fileButton.Update();
     clearButton.Update();
@@ -375,44 +491,46 @@ void Trie::drawButtons(){
     addButton.Draw();
     searchButton.Draw();
     deleteButton.Draw();
+    updateButton.Draw();
     createButton.Draw();
     fileButton.Draw();
     clearButton.Draw();
 
-    DrawRectangleRec(togglePseudocodeButton, GREEN);
-    if (isPseudocodeVisible) {
-        // DrawRectangleLinesEx(togglePseudocodeButton, 2, BLACK);
-        DrawTextEx(customFont, ">", { togglePseudocodeButton.x + (togglePseudocodeButton.width - MeasureText(">", 20)) / 2, togglePseudocodeButton.y + (togglePseudocodeButton.height - 20) / 2 }, 20, 2, WHITE);
-    } else {
-        // DrawRectangleLinesEx(togglePseudocodeButton, 2, BLACK);
-        DrawTextEx(customFont, "<", { togglePseudocodeButton.x + (togglePseudocodeButton.width - MeasureText("<", 20)) / 2, togglePseudocodeButton.y + (togglePseudocodeButton.height - 20) / 2 }, 20, 2, WHITE);
+    if(inputActive){
+        if(inputType == 1){
+            createTextBox.Update();
+            createTextBox.Draw();
+        }
+        else if(inputType == 2){
+            searchTextBox.Update();
+            searchTextBox.reGenerateString();
+            searchTextBox.Draw();
+        }
+        else if(inputType == 3){
+            addTextBox.Update();
+            addTextBox.reGenerateString();
+            addTextBox.Draw();
+        }
+        else if(inputType == 4){
+            deleteTextBox.Update();
+            deleteTextBox.reGenerateString();
+            deleteTextBox.Draw();
+        }
+        else if(inputType == 5){
+            updateUTextBox.Update();                      
+            updateVTextBox.Update();
+            updateUTextBox.reGenerateString();
+            updateVTextBox.reGenerateString();
+            updateUTextBox.Draw();
+            updateVTextBox.Draw();
+        }
     }
 
-    if (inputActive) {
-        if (inputType == 2){ // Search
-            DrawRectangle(searchButton.bounds.x + searchButton.bounds.width + 10, searchButton.bounds.y, 150, searchButton.bounds.height, PINK); // Draw input box
-            DrawText("S = ", searchButton.bounds.x + searchButton.bounds.width + 15, searchButton.bounds.y + 5, 20, BLACK); // Draw input text
-            DrawText(inputBuffer, searchButton.bounds.x + searchButton.bounds.width + 55, searchButton.bounds.y + 5, 20, BLACK); // Draw input text
-            if(static_cast<int>(GetTime() * 2) % 2 == 0){
-                DrawText("|", searchButton.bounds.x + searchButton.bounds.width + 55 + MeasureText(inputBuffer, 20), searchButton.bounds.y + 5, 20, BLACK); // Draw cursor
-            }
-        }
-        else if (inputType == 3){ // Insert
-            DrawRectangle(addButton.bounds.x + addButton.bounds.width + 10, addButton.bounds.y, 150, addButton.bounds.height, PINK); // Draw input box
-            DrawText("S = ", addButton.bounds.x + addButton.bounds.width + 15, addButton.bounds.y + 5, 20, BLACK); // Draw input text
-            DrawText(inputBuffer, addButton.bounds.x + addButton.bounds.width + 55, addButton.bounds.y + 5, 20, BLACK); // Draw input text
-            if(static_cast<int>(GetTime() * 2) % 2 == 0){
-                DrawText("|", addButton.bounds.x + addButton.bounds.width + 55 + MeasureText(inputBuffer, 20), addButton.bounds.y + 5, 20, BLACK); // Draw cursor
-            }
-        }
-        else if (inputType == 4){ // Delete
-            DrawRectangle(deleteButton.bounds.x + deleteButton.bounds.width + 10, deleteButton.bounds.y, 150, deleteButton.bounds.height, PINK); // Draw input box
-            DrawText("S = ", deleteButton.bounds.x + deleteButton.bounds.width + 15, deleteButton.bounds.y + 5, 20, BLACK); // Draw input text
-            DrawText(inputBuffer, deleteButton.bounds.x + deleteButton.bounds.width + 55, deleteButton.bounds.y + 5, 20, BLACK); // Draw input text
-            if(static_cast<int>(GetTime() * 2) % 2 == 0){
-                DrawText("|", deleteButton.bounds.x + deleteButton.bounds.width + 55 + MeasureText(inputBuffer, 20), deleteButton.bounds.y + 5, 20, BLACK); // Draw cursor
-            }
-        }
+    DrawRectangleRec(togglePseudocodeButton, GREEN);
+    if (isPseudocodeVisible) {
+        DrawTextEx(customFont, ">", { togglePseudocodeButton.x + (togglePseudocodeButton.width - MeasureText(">", 20)) / 2, togglePseudocodeButton.y + (togglePseudocodeButton.height - 20) / 2 }, 20, 2, WHITE);
+    } else {
+        DrawTextEx(customFont, "<", { togglePseudocodeButton.x + (togglePseudocodeButton.width - MeasureText("<", 20)) / 2, togglePseudocodeButton.y + (togglePseudocodeButton.height - 20) / 2 }, 20, 2, WHITE);
     }
 }
 

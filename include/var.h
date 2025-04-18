@@ -158,17 +158,29 @@ public:
         text = std::to_string(randomValue);
     }
 
+    void createRandomString(int len){
+        text.clear();
+        for(int i = 0; i < len; ++i){
+            text += (char)(GetRandomValue(0, 25) + 'A'); // Generate a random uppercase letter
+        }
+    }
+
+    void reGenerateString(){ // for Alphabet 'A' to 'Z'
+        for(int i = 0; i < text.size(); ++i){
+            if('A' <= text[i] && text[i] <= 'Z') continue;
+            if('a' <= text[i] && text[i] <= 'z') text[i] = text[i] - 32;
+            else{
+                text.erase(i, 1);
+                --i;
+            }
+        }
+    }
+
     void Update() {
         Vector2 mousePos = GetMousePosition();
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             bool wasActive = isActive;
             isActive = CheckCollisionPointRec(mousePos, bounds);
-
-            // // Generate random number when newly clicked
-            // if (isActive && !wasActive) {
-            //     int randomValue = GetRandomValue(0, 99);
-            //     text = std::to_string(randomValue);
-            // }
         }
 
         if (isActive) {
