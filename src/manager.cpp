@@ -10,7 +10,7 @@ using namespace std;
 Menu menu;
 Tool tool;
 SinglyLinkedList singlyLinkedList;
-ShortestPath shortestPath; // Declare shortestPath object
+ShortestPath shortestPath;
 MST mst; 
 
 void init() {
@@ -29,23 +29,23 @@ void event() {
             return;
         }
         if (x == 4) {
-            current_state = SHORTESTPATH; // Switch to singly linked list state
+            current_state = SHORTESTPATH;
             return;
         }
         if (x == 5) {
-            current_state = MSTree; // Switch to MST state
+            current_state = MSTree;
             return;
         }
     }
 
     if (current_state == SINGLYLINKLIST) {
-        singlyLinkedList.handleEvents(); // Handle events for singly linked list
+        singlyLinkedList.handleEvents();
     }
     else if (current_state == SHORTESTPATH) {
-        shortestPath.handleEvents(); // Handle events for shortest path
+        shortestPath.handleEvents(); 
     }
     else if (current_state == MSTree) {
-        mst.handleEvents(); // Handle events for MST
+        mst.handleEvents(); 
     }
 
     int x = tool.UpdatePressOn();
@@ -62,7 +62,6 @@ void draw() {
     else if (current_state == SINGLYLINKLIST) {
         tool.draw();
         singlyLinkedList.draw();
-        singlyLinkedList.drawButtons(); // Draw buttons for singly linked list
     }
     else if (current_state == SHORTESTPATH) {
         tool.draw();
@@ -70,6 +69,6 @@ void draw() {
     }
     else if (current_state == MSTree) {
         tool.draw();
-        mst.draw(); // Draw the MST
+        mst.draw();
     }
 }

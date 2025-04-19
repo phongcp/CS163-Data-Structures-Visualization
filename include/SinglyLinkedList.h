@@ -9,31 +9,26 @@
 
 class SinglyLinkedList {
 private:
-    struct ListNode {
-        Node* node;
-        ListNode* next;
-
-        ListNode(Node* n);
-    };
-
-    ListNode* head;
-    ListNode* tail;
-    int size;
+    vector <Node> list;
+    Node pnode;
+    bool visb;
 
     Vector2 generatePosition(int index);
 
-    void animateListMovement(ListNode* head, int start);
-    void animateConnection(Vector2 start, Vector2 end, ListNode *node, Color color, float thickness);
-    void appear(ListNode* node);
-    void disappear(ListNode* node);
+    void animateListMovement(vector <Node> &nodes, vector <Node> newNodes);
+    void animateConnection(Vector2 start, Vector2 end, Color color, float thickness);
+    void animateDisconnection(Vector2 start, Vector2 end, Color color, float thickness);
+    void appear(Node &node);
+    void disappear(Node &node);
     
-    Rectangle addPosButton;
-    Rectangle addHeadButton;
-    Rectangle addTailButton;
+    Rectangle loadFileButton;
+    Rectangle addButton;
     Rectangle deleteButton;
+    Rectangle updateButton;
+    Rectangle searchButton;
     Rectangle createRandomButton;
     Rectangle clearButton;
-    vector <button> toolButton;
+    vector <button> remote;
 
     char inputBuffer[10];
     bool inputActive;
@@ -49,12 +44,11 @@ private:
 
     int idx;
     bool isRunning;
-    struct state {
-        int curline;
+    struct State {
+        int curline, curop, pos; // 0: None, 1: List Moving, 2: Appear, 3: Disappear, 4: Conection
         vector <Node> nodes;
     };
-    int curOp;
-    vector <state> history;
+    vector <State> history;
 
     const char* addNodeAtHeadCode[6] = {
         "Vertex vtx = new Vertex(v)",
@@ -110,24 +104,46 @@ private:
         ""
     };
 
+    const char* searchNodeCode[6] = {
+        "if empty or i >= size, do nothing",
+        "Vertex pre=head, for (k=0;k<i-1;k++) pre=pre.next",
+        "return pre",
+        "",
+        "",
+        ""
+    };
+
+    const char* updateNodeCode[6] = {
+        "if empty or i >= size, do nothing",
+        "Vertex pre=head, for (k=0;k<i-1;k++) pre=pre.next",
+        "pre.data = v",
+        "",
+        "",
+        ""
+    };
+
     void drawPseudocode(const char** pseudocode, int lineCount, int highlightedLine);
 
 public:
-    SinglyLinkedList();
     void init();
+    void searchNode(int pos);
+    void updateNode(int pos, std::string data);
     void addNodeAtHead(std::string data);
     void addNodeAtTail(std::string data);
-    void addNodeAtPosition(int position, std::string data);
+    void addNodeAtPosition(int pos, std::string data);
     void deleteNodeAtHead(); 
     void deleteNodeAtTail();
     void deleteNode(int position);
     void createRandomList(int n);
+    void loadFile();
+    void fill();
     void clear();
-    void solveRemote();
+    void checkPause();
+    void goingSt(int nidx);
+    void running();
     void draw();
-    void drawButtons();
+    void handleRemote();
     void handleEvents();
-    ~SinglyLinkedList();
 };
 
 #endif
