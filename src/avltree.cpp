@@ -169,6 +169,14 @@ void AVLTree::drawAnimation(SnapShot curShot, float opacity){
     if(isPseudocodeVisible){
         drawPseudocode(curShot.code, curShot.codeLine1, curShot.codeLine2); // Draw the pseudocode
     }
+    if(!isLightMode){
+        nodeColor = ((1) ? Color({200, 200, 200, 255}) : Color({220, 220, 220, 255}));
+        nodeHighlightColor = ((1) ? Color({255, 191, 73, 255}) : Color({255, 184, 108, 255})); 
+    }
+    else{
+        nodeColor = BLACK;
+        nodeHighlightColor = ORANGE;
+    }
     for(int i = 0; i < curShot.nodes.size(); ++i){
         NodeTree &u = curShot.nodes[i];
         if(!u.isUsed) continue;
@@ -176,6 +184,8 @@ void AVLTree::drawAnimation(SnapShot curShot, float opacity){
         else u.node.position = newPosVector2(u.oldPosition, u.newPosition, opacity);
         if(u.isDrawBalance) u.drawBalance();
         if(u.isDrawRemove) u.drawRemove();
+        if(u.typeColor == 0) u.node.color = nodeColor;
+        else if (u.typeColor == 1) u.node.color = nodeHighlightColor;
         u.node.draw(1.0f);
     }
     for (int i = 0; i < curShot.nodes.size(); ++i) {
@@ -183,15 +193,13 @@ void AVLTree::drawAnimation(SnapShot curShot, float opacity){
         NodeTree &u = curShot.nodes[i];
         if (u.left != -1) {
             NodeTree &v = curShot.nodes[u.left];
-            if(compareColor(u.node.color, v.node.color)) DrawConnection(u.node.position, v.node.position, false, u.node.color, 4.0f, u.node.radius, v.node.radius);
-            else if(v.isUpdate) DrawConnection(u.node.position, v.node.position, false, edgeColor, 4.0f, u.node.radius, v.node.radius);
-            else DrawConnection(u.node.position, v.node.position, false, edgeColor, 4.0f, u.node.radius, v.node.radius);
+            if(u.typeColor == v.typeColor) DrawConnection(u.node.position, v.node.position, false, u.node.color, 4.0f, u.node.radius, v.node.radius);
+            else DrawConnection(u.node.position, v.node.position, false, nodeColor, 4.0f, u.node.radius, v.node.radius);
         }
         if (u.right != -1) {
             NodeTree &v = curShot.nodes[u.right];
-            if(compareColor(u.node.color, v.node.color)) DrawConnection(u.node.position, v.node.position, false, u.node.color, 4.0f, u.node.radius, v.node.radius);
-            else if(v.isUpdate) DrawConnection(u.node.position, v.node.position, false, edgeColor, 4.0f, u.node.radius, v.node.radius);
-            else DrawConnection(u.node.position, v.node.position, false, edgeColor, 4.0f, u.node.radius, v.node.radius);
+            if(u.typeColor == v.typeColor) DrawConnection(u.node.position, v.node.position, false, u.node.color, 4.0f, u.node.radius, v.node.radius);
+            else DrawConnection(u.node.position, v.node.position, false, nodeColor, 4.0f, u.node.radius, v.node.radius);
         }
     }
 }
@@ -488,38 +496,3 @@ AVLTree::~AVLTree() {
     // Destructor implementation
     // Clean up resources if needed
 }
-
-
-// // Pseudocode for hash function
-// const char* insertCode[8] = {
-//     "node = root\n",
-//     "for(char ch : word)\n"
-//     "    if node.child[ch] == NULL\n",
-//     "        node.child[ch] = new TrieNode(ch)\n",
-//     "    node = node.child[ch]\n",
-//     "node.isEndOfWord = true\n",
-//     "",
-//     ""
-// };
-
-// const char* searchCode[8] = {
-//     "node = root\n",
-//     "for(char ch : word)\n",
-//     "    if node.child[ch] == NULL\n",
-//     "        return NOT_FOUND\n",
-//     "    cur.numberChild++\n",
-//     "    cur = cur.child[ch]\n",
-//     "if cur.isEndOfWord return FOUND\n",
-//     "return NOT_FOUND\n",
-// };
-
-// const char* deleteCode[8] = {
-//     "if (search(word) == NOT_FOUND) return NOT_FOUND\n",
-//     "node = endOfWordNode(word)\n"
-//     "for(char ch : rev(word))\n",
-//     "    node.numChild--\n"
-//     "    node = node.parent\n",
-//     "    if node.child[ch].numChild == 0\n",
-//     "        delete node.child[ch]\n",
-//     "return FOUND\n"
-// };

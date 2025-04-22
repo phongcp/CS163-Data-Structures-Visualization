@@ -245,8 +245,8 @@ void Trie::drawAnimation(SnapShot curShot, float opacity){
         for(int j = 0; j < 26; ++j){
             if(u.child[j] == -1) continue;
             TrieNode &v = curShot.nodes[u.child[j]];
-            if(u.typeColor == v.typeColor) DrawConnection(u.node.position, v.node.position, true, u.node.color, 4.0f, u.node.radius, v.node.radius);
-            else DrawConnection(u.node.position, v.node.position, true, nodeColor, 4.0f, u.node.radius, v.node.radius);
+            if(u.typeColor == v.typeColor) DrawConnection(u.node.position, v.node.position, true, u.node.color, 3.0f, u.node.radius, v.node.radius);
+            else DrawConnection(u.node.position, v.node.position, true, nodeColor, 3.0f, u.node.radius, v.node.radius);
         }
     }
 }

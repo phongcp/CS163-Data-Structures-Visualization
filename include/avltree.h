@@ -12,7 +12,7 @@
 
 const int MAX_NODES = 256; // Số lượng nút tối đa trong cây AVL
 class AVLTree {
-public:
+private:
 
 
     struct NodeTree{
@@ -24,6 +24,7 @@ public:
         int right;
         int parent;
         int bf; // Balance factor
+        int typeColor = 0; // 0: normal, 1: highlight
         bool isUsed;
         bool isUpdate;
         bool isHightlight;
@@ -77,10 +78,7 @@ public:
 
     struct SnapShot{
         std::vector<NodeTree> nodes;
-        int root;                   // Chỉ số của nút gốc
-        int checkIndex;             // Chỉ số nút đang kiểm tra (nếu có)
-        float insertTimer;          // Thời gian animation hiện tại
-        int insertingNumber;        // Số đang được chèn (nếu có)
+        int root;      
         const char** code = nullptr; // Mã lệnh tương ứng với trạng thái hiện tại
         int codeLine1 = -1, codeLine2 = -1;
 
@@ -92,20 +90,9 @@ public:
             codeLine1 = newCodeLine1; // Dòng đầu tiên của mã lệnh
             codeLine2 = newCodeLine2; // Dòng thứ hai của mã lệnh
         }
-        SnapShot(std::vector<NodeTree> newNodes, int newRoot, int newCheckIndex, float newInsertTimer, int newInsertingNumber, const char** newCode = nullptr, int newCodeLine1 = -1, int newCodeLine2 = -1) {
-            nodes = newNodes;
-            root = newRoot;
-            checkIndex = newCheckIndex;
-            insertTimer = newInsertTimer;
-            insertingNumber = newInsertingNumber;
-            code = newCode; // Mã lệnh tương ứng với trạng thái hiện tại
-            codeLine1 = newCodeLine1; // Dòng đầu tiên của mã lệnh
-            codeLine2 = newCodeLine2; // Dòng thứ hai của mã lệnh
-        }
     };
 
     std::vector<NodeTree> nodes; // Cây AVL (mỗi nút chứa giá trị và chiều cao)
-    std::vector<NodeTree> nodesAnimation;
     int capacity;
     int root;
 
@@ -163,10 +150,10 @@ public:
         int T2 = nodes[x].right;
         
         // Highlight các nút liên quan
-        nodes[y].node.color = nodeHighlightColor; nodes[y].isDrawBalance = true;
-        nodes[x].node.color = nodeHighlightColor; nodes[x].isDrawBalance = true;
+        nodes[y].typeColor = 1; nodes[y].isDrawBalance = true;
+        nodes[x].typeColor = 1; nodes[x].isDrawBalance = true;
         if (T2 != -1){
-            nodes[T2].node.color = nodeHighlightColor;
+            nodes[T2].typeColor = 1;
             nodes[T2].isDrawBalance = true;
         }
         Animation.push_back(SnapShot(nodes, root, code, codeLine1, codeLine2));
@@ -192,10 +179,10 @@ public:
         updateHeight(x);
 
 
-        nodes[y].node.color = nodeColor; nodes[y].isDrawBalance = false;
-        nodes[x].node.color = nodeColor; nodes[x].isDrawBalance = false;
+        nodes[y].typeColor = 0; nodes[y].isDrawBalance = false;
+        nodes[x].typeColor = 0; nodes[x].isDrawBalance = false;
         if (T2 != -1){
-            nodes[T2].node.color = nodeColor;
+            nodes[T2].typeColor = 0;
             nodes[T2].isDrawBalance = false;
         }
         // generatePosition(root, root, 150, screenWidth - 30, 100, 100);
@@ -208,10 +195,10 @@ public:
         int y = nodes[x].right;
         int T2 = nodes[y].left;
 
-        nodes[x].node.color = nodeHighlightColor; nodes[x].isDrawBalance = true;
-        nodes[y].node.color = nodeHighlightColor; nodes[y].isDrawBalance = true;
+        nodes[x].typeColor = 1; nodes[x].isDrawBalance = true;
+        nodes[y].typeColor = 1; nodes[y].isDrawBalance = true;
         if (T2 != -1){
-            nodes[T2].node.color = nodeHighlightColor;
+            nodes[T2].typeColor = 1;
             nodes[T2].isDrawBalance = true;
         }
         Animation.push_back(SnapShot(nodes, root, code, codeLine1, codeLine2));
@@ -236,10 +223,10 @@ public:
         updateHeight(y);
         
 
-        nodes[x].node.color = nodeColor; nodes[x].isDrawBalance = false;
-        nodes[y].node.color = nodeColor; nodes[y].isDrawBalance = false;
+        nodes[x].typeColor = 0; nodes[x].isDrawBalance = false;
+        nodes[y].typeColor = 0; nodes[y].isDrawBalance = false;
         if (T2 != -1){
-            nodes[T2].node.color = nodeColor;
+            nodes[T2].typeColor = 0;
             nodes[T2].isDrawBalance = false;
         }
         // generatePosition(root, root, 150, screenWidth - 30, 100, 100);
@@ -258,7 +245,7 @@ public:
             nodes[idx].oldPosition = {(float)screenWidth/2.0f, (float)screenHeight - 120.0f};
             nodes[idx].newPosition = {(float)screenWidth/2.0f, (float)screenHeight - 120.0f};
             nodes[idx].parent = parent;
-            nodes[idx].node.color = nodeHighlightColor;
+            nodes[idx].typeColor = 1;
             nodes[idx].isUpdate = true;
             if(parent != -1 && parent != idx){
                 if(pos == 0) nodes[parent].left = idx;
@@ -272,20 +259,20 @@ public:
             Animation.push_back(SnapShot(nodes, root, insertValueCode, 0, 0)); 
             
             for(int i = 0; i < nodes.size(); ++i){
-                nodes[i].node.color = nodeColor;
+                nodes[i].typeColor = 0;
             }
 
-            nodes[idx].node.color = nodeHighlightColor;
+            nodes[idx].typeColor = 1;
             nodes[idx].oldPosition = nodes[idx].newPosition;
             nodes[idx].isUpdate = true;
             Animation.push_back(SnapShot(nodes, root, insertValueCode, 0, 0));
-            nodes[idx].node.color = nodeColor;
+            nodes[idx].typeColor = 0;
             nodes[idx].isUpdate = false;
 
             return idx;
         }
 
-        nodes[idx].node.color = nodeHighlightColor;
+        nodes[idx].typeColor = 1;
         nodes[idx].isUpdate = true;
         Animation.push_back(SnapShot(nodes, root, insertValueCode, 0, 0));
         nodes[idx].isUpdate = false;
@@ -303,12 +290,12 @@ public:
         int balance = getBalance(idx);
 
         generatePosition(root, root, 150, screenWidth - 30, 100, 100);
-        nodes[idx].node.color = nodeHighlightColor;
+        nodes[idx].typeColor = 1;
         nodes[idx].isUpdate = true;
         nodes[idx].bf = balance;
         nodes[idx].isDrawBalance = true;
         Animation.push_back(SnapShot(nodes, root, insertValueCode, 0, 0));
-        nodes[idx].node.color = nodeColor;
+        nodes[idx].typeColor = 0;
         nodes[idx].isUpdate = false;
         nodes[idx].isDrawBalance = false;
 
@@ -334,7 +321,7 @@ public:
         if (idx == -1) return -1;
     
         // Highlight nút hiện tại đang được kiểm tra
-        nodes[idx].node.color = nodeHighlightColor;
+        nodes[idx].typeColor = 1;
         nodes[idx].isUpdate = true;
         Animation.push_back(SnapShot(nodes, root, deleteValueCode, 0, 0)); // Lưu trạng thái khi kiểm tra nút
         nodes[idx].isUpdate = false;
@@ -343,7 +330,7 @@ public:
             idx = nodes[idx].left;
     
             // Highlight nút tiếp theo
-            nodes[idx].node.color = nodeHighlightColor;
+            nodes[idx].typeColor = 1;
             nodes[idx].isUpdate = true;
             Animation.push_back(SnapShot(nodes, root, deleteValueCode, 0, 0)); // Lưu trạng thái khi di chuyển đến nút tiếp theo
             nodes[idx].isUpdate = false;
@@ -356,7 +343,7 @@ public:
         if (idx == -1) return -1;
         
         nodes[idx].parent = parent;
-        nodes[idx].node.color = nodeHighlightColor;
+        nodes[idx].typeColor = 1;
         nodes[idx].isUpdate = true;
         Animation.push_back(SnapShot(nodes, root, deleteValueCode, 0, 0));
         nodes[idx].isUpdate = false;
@@ -367,7 +354,7 @@ public:
             nodes[idx].right = deleteNode(nodes[idx].right, value, 1, idx);
         } else {
             // Highlight nút cần xóa
-            nodes[idx].node.color = nodeHighlightColor;
+            nodes[idx].typeColor = 1;
             nodes[idx].isDrawRemove = true;
             Animation.push_back(SnapShot(nodes, root, deleteValueCode, 0, 0));
     
@@ -382,8 +369,7 @@ public:
                     idx = -1;
 
                     Animation.push_back(SnapShot(nodes, root, deleteValueCode, 0, 0));
-                    for(int i = 0; i < nodes.size(); ++i) nodes[i].node.color = nodeColor;
-
+                    for(int i = 0; i < nodes.size(); ++i) nodes[i].typeColor = 0;
                     return -1;
                 } else { // Có 1 con
                     // nodes[temp].parent = nodes[idx].parent;
@@ -392,13 +378,13 @@ public:
                     if(parent != -1 && pos == 0) nodes[parent].left = temp;
                     else if(parent != -1 && pos == 1) nodes[parent].right = temp;
                     nodes[temp].parent = parent;
-                    nodes[temp].node.color = nodeHighlightColor;
+                    nodes[temp].typeColor = 1;
                     nodes[temp].isUpdate = true;
                     nodes[temp].newPosition = nodes[idx].newPosition;
                     deleteID(idx);
                     Animation.push_back(SnapShot(nodes, root, deleteValueCode, 0, 0));
 
-                    for(int i = 0; i < nodes.size(); ++i) nodes[i].node.color = nodeColor;
+                    for(int i = 0; i < nodes.size(); ++i) nodes[i].typeColor = 0;
                     nodes[temp].isUpdate = false;
                     nodes[temp].oldPosition = nodes[temp].newPosition;
                     nodes[temp].isDrawRemove = false;
@@ -424,7 +410,7 @@ public:
 
                     nodes[idx].isDrawRemove = false;
                     for(int i = 0; i < nodes.size(); ++i){
-                        nodes[i].node.color = nodeColor;
+                        nodes[i].typeColor = 0;
                         nodes[i].oldPosition = nodes[i].newPosition;
                     }
                     return idx;
@@ -436,8 +422,8 @@ public:
                 nodes[idx].value = nodes[temp].value;
                 nodes[idx].oldPosition = nodes[temp].newPosition;
                 nodes[idx].node.data = std::to_string(nodes[idx].value);
-                if(nodes[idx].left != -1) nodes[nodes[idx].left].node.color = nodeHighlightColor;
-                if(nodes[idx].right != -1) nodes[nodes[idx].right].node.color = nodeHighlightColor;
+                if(nodes[idx].left != -1) nodes[nodes[idx].left].typeColor = 1;
+                if(nodes[idx].right != -1) nodes[nodes[idx].right].typeColor = 1;
                 nodes[nodes[temp].parent].left = nodes[temp].right;
                 int tempIDRight = nodes[temp].right;
                 nodes[tempIDRight].parent = nodes[temp].parent;
@@ -446,15 +432,15 @@ public:
                 deleteID(temp);
     
                 // Highlight nút thay thế 
-                nodes[idx].node.color = nodeHighlightColor;
+                nodes[idx].typeColor = 1;
                 Animation.push_back(SnapShot(nodes, root, deleteValueCode, 0, 0));    
 
-                for(int i = 0; i < capacity; ++i) nodes[i].node.color = nodeColor;
+                for(int i = 0; i < capacity; ++i) nodes[i].typeColor = 0;
 
                 nodes[idx].oldPosition = nodes[idx].newPosition;           
                 nodes[idx].isDrawRemove = false;
-                if(nodes[idx].left != -1) nodes[nodes[idx].left].node.color = nodeColor;
-                if(nodes[idx].right != -1) nodes[nodes[idx].right].node.color = nodeColor; 
+                if(nodes[idx].left != -1) nodes[nodes[idx].left].typeColor = 0;
+                if(nodes[idx].right != -1) nodes[nodes[idx].right].typeColor = 0; 
                 if(tempIDRight != -1) nodes[tempIDRight].oldPosition = nodes[tempIDRight].newPosition;
                 // if(nodes[nodes[temp].parent].left != -1) nodes[nodes[nodes[temp].parent].left].oldPosition = nodes[nodes[temp].parent].newPosition;
 
@@ -471,10 +457,10 @@ public:
         generatePosition(root, root, 150, screenWidth - 30, 100, 100);
         nodes[idx].bf = balance;
         nodes[idx].isDrawBalance = true;
-        nodes[idx].node.color = nodeHighlightColor;
+        nodes[idx].typeColor = 1;
         Animation.push_back(SnapShot(nodes, root, deleteValueCode, 0, 0));
         nodes[idx].isDrawBalance = false;
-        nodes[idx].node.color = nodeColor;
+        nodes[idx].typeColor = 0;
     
         // Kiểm tra và thực hiện cân bằng
         if (balance > 1 && getBalance(nodes[idx].left) >= 0) { // LL case
@@ -497,14 +483,14 @@ public:
 
     int searchNode(int idx, int value) {
         if (idx == -1){
-            for(int i = 0; i < capacity; ++i) nodes[i].node.color = nodeColor;
+            for(int i = 0; i < capacity; ++i) nodes[i].typeColor = 0;
             Animation.push_back(SnapShot(nodes, root, searchValueCode, 0, 0));
             return -1;
         }
         
         if (nodes[idx].value == value){
-            for(int i = 0; i < capacity; ++i) nodes[i].node.color = nodeColor;
-            nodes[idx].node.color = nodeHighlightColor;
+            for(int i = 0; i < capacity; ++i) nodes[i].typeColor = 0;
+            nodes[idx].typeColor = 1;
             nodes[idx].isUpdate = true;
             Animation.push_back(SnapShot(nodes, root, searchValueCode, 1, 1));
             nodes[idx].isUpdate = false;            
@@ -512,14 +498,14 @@ public:
         }
 
         if (value < nodes[idx].value) {
-            nodes[idx].node.color = nodeHighlightColor;
+            nodes[idx].typeColor = 1;
             nodes[idx].isUpdate = true;
             Animation.push_back(SnapShot(nodes, root, searchValueCode, 2, 2));
             nodes[idx].isUpdate = false;
             return searchNode(nodes[idx].left, value);
         }
 
-        nodes[idx].node.color = nodeHighlightColor;
+        nodes[idx].typeColor = 1;
         nodes[idx].isUpdate = true;
         Animation.push_back(SnapShot(nodes, root, searchValueCode, 3, 3));
         nodes[idx].isUpdate = false;
@@ -543,7 +529,7 @@ public:
 
     void resetNodes(){
         for(int i = 0; i < nodes.size(); ++i){
-            nodes[i].node.color = nodeColor;
+            nodes[i].typeColor = 0;
             nodes[i].oldPosition = nodes[i].newPosition; 
             nodes[i].isUpdate = false;
             nodes[i].isDrawBalance = false;
@@ -623,6 +609,7 @@ public:
     InputTextBox deleteTextBox;
     InputTextBox updateUTextBox, updateVTextBox;
 
+public:
     AVLTree();
     Vector2 newPosVector2(Vector2, Vector2, float);
     void init();
