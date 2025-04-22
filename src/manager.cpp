@@ -81,6 +81,8 @@ void draw() {
         draw_bg();
         if(isLightMode) tool.lightMode.DrawBasic(1);
         else tool.darkMode.DrawBasic(1);
+        if(isPlaySong) tool.unmuteButton.DrawBasic(1); 
+        else tool.muteButton.DrawBasic(1);
         menu.draw();
     }
     else {

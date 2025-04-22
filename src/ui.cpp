@@ -50,6 +50,9 @@ int Menu::UpdatePressOn(){
 }
 
 void Tool::init(){
+    musicBackGround = LoadMusicStream("../assets/music/BackGroundMusic.ogg"); // Tải nhạc nền
+    PlayMusicStream(musicBackGround);
+
     // Khởi tạo mảng Button với 3 phần tử
     Button.resize(3);       
     gtt = -1e8;            // Khởi tạo thời gian với giá trị âm lớn
@@ -79,6 +82,18 @@ void Tool::init(){
 
     darkMode.image.height /= 5;          // Giảm kích thước nút Dark mode
     darkMode.image.width /= 5;
+
+    // mute and unmute
+    muteButton = button({1120,0},{51.2,51.2},              // Nút Mute
+        LoadTexture("../assets/in_app/mute.png"),
+        RAYWHITE, 1);
+    unmuteButton = button({1120,0},{51.2,51.2},              // Nút Unmute
+        LoadTexture("../assets/in_app/unmute.png"),
+        RAYWHITE, 1);
+    muteButton.image.height /= 5;          // Giảm kích thước nút Mute
+    unmuteButton.image.height /= 5;
+    muteButton.image.width /= 5;          // Giảm kích thước nút Mute
+    unmuteButton.image.width /= 5;          // Giảm kích thước nút Unmute
 
     // Khởi tạo thanh điều chỉnh tốc độ
     SpeedBar = button({92, 762},{237,22},              // Thanh tốc độ
@@ -167,6 +182,8 @@ void Tool::draw(){
     
     if(isLightMode) lightMode.DrawBasic(1); 
     else darkMode.DrawBasic(1);   
+    if(isPlaySong) unmuteButton.DrawBasic(1); 
+    else muteButton.DrawBasic(1);
     SpeedBar.DrawBasic(1);
     SpeedNode.DrawBasic(1);
 }
@@ -181,6 +198,13 @@ int Tool::UpdatePressOn(){
     // Kiểm tra click chuột trên nút Light mode
     if (lightMode.CheckMouse(GetMousePosition(), 1) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         isLightMode = !isLightMode;  // Chuyển sang chế độ sáng
+    }
+
+    UpdateMusicStream(musicBackGround);
+    if (muteButton.CheckMouse(GetMousePosition(), 1) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        isPlaySong = !isPlaySong;  // Chuyển sang chế độ tắt tiếng
+        if(isPlaySong) ResumeMusicStream(musicBackGround); // Tiếp tục phát nhạc
+        else PauseMusicStream(musicBackGround); // Tạm dừng nhạc
     }
 
     // Kiểm tra click chuột trên các nút

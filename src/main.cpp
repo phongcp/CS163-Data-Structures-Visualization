@@ -7,6 +7,7 @@ using namespace std;
 int main() {
     srand(time(NULL));
     InitWindow(screenWidth, screenHeight, "Data Structure Visualization");
+    InitAudioDevice();
     SetTargetFPS(60);
 
     init();
@@ -26,6 +27,10 @@ int main() {
 
         EndDrawing();
     }
+
+    UnloadFont(customFont);
+    UnloadFont(fontPseudocode);
+    UnloadTexture(Logo);
     
     CloseWindow();
     return 0;

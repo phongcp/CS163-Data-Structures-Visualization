@@ -633,5 +633,7 @@ void HashTable::drawButtons() {
 
 // Destructor
 HashTable::~HashTable() {
-    // No dynamic memory to free
+    for(button v : remote){
+        UnloadTexture(v.image);
+    }    
 }

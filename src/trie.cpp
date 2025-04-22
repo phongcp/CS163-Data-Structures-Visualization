@@ -535,5 +535,7 @@ void Trie::drawButtons(){
 }
 
 Trie::~Trie(){
-
+    for(button v: remote){
+        UnloadTexture(v.image);
+    }
 }

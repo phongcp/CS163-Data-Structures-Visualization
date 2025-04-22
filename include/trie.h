@@ -115,7 +115,8 @@ public:
             if(isChildDeleted){
                 nodes[pos].child[c] = -1;
                 adjustPosition();
-                Animation.push_back(SnapShot(nodes, deleteCode, 2, 5, 6, false));   
+                Animation.push_back(SnapShot(nodes, deleteCode, 2, 5, 6, false));
+                adjustPosition();
                 // for(int i = 0; i < nodes.size(); ++i) nodes[i].oldPosition = nodes[i].newPosition; 
             }
         }
@@ -139,6 +140,7 @@ public:
         }
         Animation.push_back(SnapShot(nodes, deleteCode, 1, -1, -1, false));
         deleteStringRecursive(0, word, 0);
+        adjustPosition();
         adjustPosition();
         for(int i = 0; i < nodes.size(); ++i){
             if(nodes[i].exist > 0) nodes[i].typeColor = 3;

@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # )
 # FetchContent_MakeAvailable(raylib)
 
-set(RAYLIB_PATH "C:/raylib")
+set(RAYLIB_PATH "E:/raylib")
 
 include_directories(${RAYLIB_PATH}/include)
 link_directories(${RAYLIB_PATH}/lib)

@@ -19,6 +19,7 @@ extern Texture2D Logo;
 extern double deltaTime;
 
 extern bool isLightMode;
+extern bool isPlaySong;
 
 extern float radius;
 extern float fontSize;
@@ -76,6 +77,10 @@ struct button {
     void DrawBasic(float g);                    // Vẽ nút cơ bản
     bool CheckMouse(Vector2 A,int k);           // Kiểm tra vị trí chuột
     bool CheckPress(Vector2 A,int k,bool _press); // Kiểm tra nhấn chuột
+
+    void unLoad(){
+        UnloadTexture(image);
+    }
 };
 
 struct ButtonText{

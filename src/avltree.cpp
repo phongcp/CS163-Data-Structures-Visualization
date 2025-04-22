@@ -494,5 +494,7 @@ void AVLTree::drawButtons() {
 
 AVLTree::~AVLTree() {
     // Destructor implementation
-    // Clean up resources if needed
+    for(button v : remote){
+        UnloadTexture(v.image);
+    }    
 }

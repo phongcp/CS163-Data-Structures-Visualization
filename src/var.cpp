@@ -10,6 +10,7 @@ Font fontPseudocode;
 Texture2D Logo;
 
 bool isLightMode = true;
+bool isPlaySong = true;
 
 float radius = 25; 
 float fontSize = 15;
