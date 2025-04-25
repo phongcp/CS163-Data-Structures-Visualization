@@ -50,14 +50,19 @@ int Menu::UpdatePressOn(){
 }
 
 void Tool::init(){
+    musicBackGround = LoadMusicStream("../assets/music/BackGroundMusic.ogg"); // Tải nhạc nền
+    PlayMusicStream(musicBackGround);
+
     // Khởi tạo mảng Button với 3 phần tử
     Button.resize(3);       
     gtt = -1e8;            // Khởi tạo thời gian với giá trị âm lớn
 
     // Khởi tạo 3 button chính của giao diện
-    Button[0] = button({0,0},{1440,810},              // Background
-        LoadTexture("../assets/in_app/bg_app.png"),
-        RAYWHITE, 0);     
+    // if(!(current_state == AVLTREE || current_state == TRIE || current_state == HASHTABLE)){
+        Button[0] = button({0,0},{1440,810},              // Background
+            LoadTexture("../assets/in_app/bg_app.png"),
+            RAYWHITE, 0);
+    // }
 
     Button[1] = button({-100,-4},{220,43},            // Logo
         LoadTexture("../assets/bg/name.png"),
@@ -66,9 +71,34 @@ void Tool::init(){
     Button[2] = button({1348,7},{48,48},             // Nút Return
         LoadTexture("../assets/in_app/return.png"),
         RAYWHITE, 1);     
+        
+    // Light mode and dark mode
+    lightMode = button({1200,7},{102,48},              // Nút Light mode
+        LoadTexture("../assets/in_app/light_mode.png"),
+        RAYWHITE, 1);
+    darkMode = button({1200,7},{102,48},              // Nút Dark mode
+        LoadTexture("../assets/in_app/dark_mode.png"),
+        RAYWHITE, 1);
+    lightMode.image.height /= 5;          // Giảm kích thước nút Light mode
+    lightMode.image.width /= 5;
+
+    darkMode.image.height /= 5;          // Giảm kích thước nút Dark mode
+    darkMode.image.width /= 5;
+
+    // mute and unmute
+    muteButton = button({1120,0},{51.2,51.2},              // Nút Mute
+        LoadTexture("../assets/in_app/mute.png"),
+        RAYWHITE, 1);
+    unmuteButton = button({1120,0},{51.2,51.2},              // Nút Unmute
+        LoadTexture("../assets/in_app/unmute.png"),
+        RAYWHITE, 1);
+    muteButton.image.height /= 5;          // Giảm kích thước nút Mute
+    unmuteButton.image.height /= 5;
+    muteButton.image.width /= 5;          // Giảm kích thước nút Mute
+    unmuteButton.image.width /= 5;          // Giảm kích thước nút Unmute
 
     // Khởi tạo thanh điều chỉnh tốc độ
-    SpeedBar = button({50, 762},{237,22},              // Thanh tốc độ
+    SpeedBar = button({92, 762},{237,22},              // Thanh tốc độ
         LoadTexture("../assets/in_app/speed.png"),
         RAYWHITE, 1);     
 
@@ -102,11 +132,18 @@ void Tool::init(){
 
 void Tool::draw(){
     Vector2 Mouse = GetMousePosition();  // Lấy vị trí chuột hiện tại
-    for (button v : Button) {
+    for(int i = 0; i < Button.size(); i++){
+        button &v = Button[i];
+        if((i == 0) && (current_state == AVLTREE || current_state == TRIE || current_state == HASHTABLE)) continue;
         if (v.kind_mouse != 0 && v.CheckMouse(Mouse,3) ) v.col = 1;  // Hiệu ứng khi hover
         else v.col = 0;
-        v.DrawBasic(0.7);  // Vẽ nút với độ trong suốt 0.7
+        v.DrawBasic(0.7); 
     }
+    // for (button v : Button) {
+    //     if (v.kind_mouse != 0 && v.CheckMouse(Mouse,3) ) v.col = 1;  // Hiệu ứng khi hover
+    //     else v.col = 0;
+    //     v.DrawBasic(0.7);  // Vẽ nút với độ trong suốt 0.7
+    // }
 
     // Chuẩn bị text cho các loại cấu trúc dữ liệu
     const char * A = "Singly Linked List";
@@ -144,6 +181,11 @@ void Tool::draw(){
         Vector2 Postion = {screenWidth/2.0f - textSize.x/2.0f,14};
         DrawTextEx(customFont,"Shortest Path",Postion,fontSize,1.0f,WHITE);
     }
+
+    if(isLightMode) lightMode.DrawBasic(1);  // Vẽ nút Light mode
+    else darkMode.DrawBasic(1);  // Vẽ nút Dark mode
+    if(isPlaySong) unmuteButton.DrawBasic(1);  // Vẽ nút Mute
+    else muteButton.DrawBasic(1);  // Vẽ nút Unmute
     
     SpeedBar.DrawBasic(1);
     SpeedNode.DrawBasic(1);
@@ -155,6 +197,18 @@ int Tool::UpdatePressOn(){
 
     int d = 0;
     Vector2 Mouse = GetMousePosition();  // Lấy vị trí chuột
+
+    // Kiểm tra click chuột trên nút Light mode
+    if (lightMode.CheckMouse(GetMousePosition(), 1) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        isLightMode = !isLightMode;  // Chuyển sang chế độ sáng
+    }
+
+    UpdateMusicStream(musicBackGround);
+    if (muteButton.CheckMouse(GetMousePosition(), 1) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        isPlaySong = !isPlaySong;  // Chuyển sang chế độ tắt tiếng
+        if(isPlaySong) ResumeMusicStream(musicBackGround); // Tiếp tục phát nhạc
+        else PauseMusicStream(musicBackGround); // Tạm dừng nhạc
+    }
 
     // Kiểm tra click chuột trên các nút
     for (button v : Button) {

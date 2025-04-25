@@ -19,8 +19,14 @@ link_directories(${RAYLIB_PATH}/lib)
 include_directories(include)
 
 file(GLOB SOURCES "src/*.cpp")
-list(APPEND SOURCES src/tinyfiledialogs.c)
 
-add_executable(ds_visualization ${SOURCES})
+add_executable(ds_visualization ${SOURCES}
+                                      "src/tinyfiledialogs.c")
+
+# if(WIN32)
+#     add_executable(ds_visualization WIN32 ${SOURCES})
+# else()
+#     add_executable(ds_visualization ${SOURCES})
+# endif()
 
 target_link_libraries(ds_visualization raylib -lopengl32 -lgdi32 -lwinmm)
